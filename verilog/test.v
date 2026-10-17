@@ -1,5 +1,0 @@
-module init (
-
-);
-
-endmodule
