@@ -1,1 +1,5 @@
+today i created the verilog folder and tried to get my tooling to work...
 
+we are using verilator because it supports systemverilog and has lots of cool companies on its readme
+
+i still need to get my lsp working though
