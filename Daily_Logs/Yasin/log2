@@ -1,0 +1,11 @@
+i figured out how to use arrays, i learned about variable assignment, learned about = is blocking assignment and <= is non-blocking
+
+i updated the verilog with a basic cpu idea . it doesnt have instruction decoding because i still need to figure out
+how memory is gonna work on this thing
+
+should we have our own ROM? but i dont want to bake it into the chip... doom will need at least a megabyte... so should
+we use an external memory chip?
+
+also added a reset, but this also brings us back to where does code start? and that brings us back to memory...
+
+for fault handling we can use systemverilog's enums
