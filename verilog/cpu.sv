@@ -1,5 +1,3 @@
-// Copyright (c) 2026 techs-sus and Contributors
-
 // how should we design the memory?
 module cpu ();
   reg [31:0] registers[32];

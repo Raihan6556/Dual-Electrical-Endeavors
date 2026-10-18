@@ -1,0 +1,5 @@
+ok today i learned reg was replaced by logic
+then i learned switch statements + if conditions allowing me to work on the base rv32i that we must support
+i still have to split up the decoding part into opcodes as individual files, but this is a good start
+still a long way to go before this thing is ready to be simulated
+i learned some of casting, 32'(a) + b should ensure that b is also 32 or verilator will give a warning

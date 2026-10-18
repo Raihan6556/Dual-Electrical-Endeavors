@@ -1,0 +1,70 @@
+module decode (
+    input  logic [31:0] instruction,
+    output logic [31:0] registers  [32],
+    output logic [31:0] pc
+);
+  logic [  6:0] opcode;
+  logic [ 11:7] rd;
+  logic [14:12] funct3;
+  logic [19:15] rs1;
+  logic [24:20] rs2;
+  logic [31:25] funct7;
+  logic [31:12] imm_u;
+
+  assign opcode = instruction[6:0];
+  assign rd     = instruction[11:7];
+  assign funct3 = instruction[14:12];
+  assign rs1    = instruction[19:15];
+  assign rs2    = instruction[24:20];
+  assign funct7 = instruction[31:25];
+  assign imm_u  = instruction[31:12];
+
+  // Chapter 36. RV32/64G Instruction Set Listings
+  always @(instruction, pc) begin
+    case (opcode)
+      // lui (Load Upper Immediate)
+      7'b0110111: registers[rd][31:12] = imm_u;
+
+      // auipc (Add Upper Immediate to Program Counter)
+      7'b0010111: registers[rd][31:12] = 20'(pc + imm_u);
+
+      // TODO: jal, jalr
+
+      // branching instructions all use the B immediate and the same opcode
+      7'b1100011: begin
+        // https://rvopcode.com/en/instruction-encoder?asm=beq%20x1%2C%20x2%2C%20-4
+        logic signed [12:0] imm_b;
+        imm_b = {
+          instruction[31],  // imm[12]
+          instruction[7],  // imm[11]
+          instruction[30:25],  // imm[10:5]
+          instruction[11:8],  // imm[4:1]
+          1'b0  // imm[0]
+        };
+
+        case (funct3)
+          3'b000: if (registers[rs1] == registers[rs2]) pc += 32'(imm_b);  // beq (Branch If Equal)
+          3'b001:
+          if (registers[rs1] != registers[rs2]) pc += 32'(imm_b);  // bne (Branch If Not Equal)
+          3'b100:
+          if (registers[rs1] < registers[rs2]) pc += 32'(imm_b);  // blt (Branch If Less Than)
+          3'b101:
+          if (registers[rs1] >= registers[rs2]) pc += 32'(imm_b);  // bge (Branch If Greater Than)
+          3'b110:
+          if (registers[rs1] <= registers[rs2])
+            pc += 32'(imm_b);  // bltu (Branch If Less Than Or Equal To)
+          3'b111:
+          if (registers[rs1] >= registers[rs2])
+            pc += 32'(imm_b);  // bgeu (Branch If Greater Than Or Equal To)
+          default: ;
+        endcase
+      end
+
+      // TODO: other rv32i instructions...
+
+      // unknown opcode
+      default: ;
+    endcase
+  end
+
+endmodule
