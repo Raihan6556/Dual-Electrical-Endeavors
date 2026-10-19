@@ -3,3 +3,8 @@ then i learned switch statements + if conditions allowing me to work on the base
 i still have to split up the decoding part into opcodes as individual files, but this is a good start
 still a long way to go before this thing is ready to be simulated
 i learned some of casting, 32'(a) + b should ensure that b is also 32 or verilator will give a warning
+
+my next log MUST be memory. risc-v is a load store architecture and BOTH of those require memory.
+maybe https://www.digikey.com/en/products/detail/lexar-enterprise/F60C1A0002-M6AR/26728967 ?
+
+8$ 2 gigs of ddr3l is pretty good
