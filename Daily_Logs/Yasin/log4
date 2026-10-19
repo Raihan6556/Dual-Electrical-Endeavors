@@ -1,0 +1,12 @@
+i was looking for fpgas today... turns out building a fgpa independent risc-v core is really hard ...
+
+the Arty A7 looks great ... but its also $322.0!
+but it does have 256mb of ddr3l built in
+
+there is also the Arty-S7: https://digilent.com/shop/arty-s7-spartan-7-fpga-development-board/
+
+only $125 on digikey... has the 256mb of dram, has 128mb of flash (where we will store doom), powered through usb, same specs
+but lacks digital to analog converter, should be fine
+
+toolchain also looks good... but i think we should wait for a hardware grant through the club
+
