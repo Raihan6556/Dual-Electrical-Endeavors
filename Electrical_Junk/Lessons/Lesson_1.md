@@ -1,4 +1,4 @@
-# Electronics Fundamentals
+# Electronics Fundamentals Lesson 1
 
 ---
 
