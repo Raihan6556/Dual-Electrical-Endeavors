@@ -106,6 +106,35 @@ module decode #(
           3'b100: registers[rd] = 32'(registers[rs1] ^ imm_i);  // xori (xor's rs1 with i immediate)
           3'b110: registers[rd] = 32'(registers[rs1] | imm_i);  // ori (or's rs1 with i immediate)
           3'b111: registers[rd] = 32'(registers[rs1] & imm_i);  // andi (ands rs1 with i immediate)
+          3'b001: registers[rd] = 32'(registers[rs1] << rs2);  // slli (shift left logically)
+
+          3'b101: begin
+            logic [6:0] lower;
+            lower = instruction[31:25];
+            case (lower)
+              7'b0000000: registers[rd] = 32'(registers[rs1] >> rs2);  // srli
+              7'b0100000:
+              registers[rd] = 32'(registers[rs1] >> rs2); // srai, FIXME: what is arithmetically shifting?
+
+              default: ;
+            endcase
+          end
+          default: ;
+        endcase
+      end
+
+      7'b0110011: begin
+        case (funct3)
+          3'b000: begin
+            logic [6:0] lower;
+            lower = instruction[31:25];
+            case (lower)
+              7'b0000000: registers[rd] = registers[rs1] + registers[rs2];  // add
+              7'b0100000: registers[rd] = registers[rs1] - registers[rs2];  // sub
+
+              default: ;
+            endcase
+          end
           default: ;
         endcase
       end
