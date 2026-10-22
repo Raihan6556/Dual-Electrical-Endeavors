@@ -1,0 +1,11 @@
+10/21/2026
+
+i went to robotics today and did well on the placement test (17/18!!!!)
+
+this should mean i get to finish rookie education faster ... which means more learning faster...
+
+anyways today i implemented more instructions that DON'T explicitly rely on memory...
+as we still don't know what fpga we want :(( OR have an FPGA at all :((
+
+today i implemented addi, slti, sltiu, xori, ori, andi all using the 0010011 opcode
+but i chose not to do shifts yet, as i need to figure out what sign extension is in verilog

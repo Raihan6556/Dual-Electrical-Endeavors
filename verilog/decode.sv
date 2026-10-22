@@ -96,6 +96,20 @@ module decode #(
         endcase
       end
 
+      7'b0010011: begin
+        case (funct3)
+          3'b000: registers[rd] = 32'(rs1 + imm_i);  // addi (Add Immediate)
+          3'b010:
+          registers[rd] = 32'(registers[rs1] < imm_i);  // slti (set less than immediate, 1/0)
+          3'b011:
+          registers[rd] = 32'(registers[rs1] < unsigned'(imm_i)); // stliu (set less than immediate unsigned 1/0)
+          3'b100: registers[rd] = 32'(registers[rs1] ^ imm_i);  // xori (xor's rs1 with i immediate)
+          3'b110: registers[rd] = 32'(registers[rs1] | imm_i);  // ori (or's rs1 with i immediate)
+          3'b111: registers[rd] = 32'(registers[rs1] & imm_i);  // andi (ands rs1 with i immediate)
+          default: ;
+        endcase
+      end
+
       // TODO: other rv32i instructions...
 
       // unknown opcode
