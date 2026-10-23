@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Resistor circuits study guide: PEFI 2.12</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --board:#e3ebe4;
+  --surface:rgba(250,252,250,.93);
+  --surface-2:#f0f5f1;
+  --ink:#17241c;
+  --muted:#4f6357;
+  --line:#c5d3c9;
+  --copper:#a85a1c;
+  --copper-soft:#f6e6d6;
+  --signal:#0b7d6c;
+  --good:#1b7443;
+  --bad:#b2342a;
+  --warn-bg:#fbefd9;
+  --trace-top:#bfd0c3;
+  --trace-bot:#d3dfd6;
+  --pad:#c7a34e;
+  --hole:#e3ebe4;
+  --silk:#93a698;
+  --sig:#18a28d;
+  --header:rgba(227,235,228,.97);
+  --shadow:0 1px 0 rgba(23,36,28,.06), 0 10px 30px -18px rgba(23,36,28,.35);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --board:#0c1d15;
+    --surface:rgba(15,34,25,.94);
+    --surface-2:#132c21;
+    --ink:#e2ece5;
+    --muted:#9db3a5;
+    --line:#26473a;
+    --copper:#e39a57;
+    --copper-soft:#3a2716;
+    --signal:#57d6c0;
+    --good:#5fcf8d;
+    --bad:#ff8a7d;
+    --warn-bg:#33270f;
+    --trace-top:#1d3d2d;
+    --trace-bot:#152e22;
+    --pad:#a9893f;
+    --hole:#0c1d15;
+    --silk:#4f6e5d;
+    --sig:#62e8cf;
+    --header:rgba(12,29,21,.97);
+    --shadow:0 1px 0 rgba(0,0,0,.3), 0 14px 34px -20px rgba(0,0,0,.8);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --board:#0c1d15;
+  --surface:rgba(15,34,25,.94);
+  --surface-2:#132c21;
+  --ink:#e2ece5;
+  --muted:#9db3a5;
+  --line:#26473a;
+  --copper:#e39a57;
+  --copper-soft:#3a2716;
+  --signal:#57d6c0;
+  --good:#5fcf8d;
+  --bad:#ff8a7d;
+  --warn-bg:#33270f;
+  --trace-top:#1d3d2d;
+  --trace-bot:#152e22;
+  --pad:#a9893f;
+  --hole:#0c1d15;
+  --silk:#4f6e5d;
+  --sig:#62e8cf;
+  --header:rgba(12,29,21,.97);
+  --shadow:0 1px 0 rgba(0,0,0,.3), 0 14px 34px -20px rgba(0,0,0,.8);
+  color-scheme:dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 64px);scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--board);color:var(--ink);font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:17px;line-height:1.62;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--header)}
+
+/* PCB background: the static board is baked into one cached image; only the pulses animate, in their own small layer */
+#pcb{display:none}
+#pcbImg{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none;will-change:transform}
+#pcbSig{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;will-change:transform;contain:strict}
+#pcb .tb path{fill:none;stroke:var(--trace-bot);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#pcb .tt path{fill:none;stroke:var(--trace-top);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+#pcb .pad{fill:var(--pad);opacity:.55}
+#pcb .hole{fill:var(--hole)}
+#pcb .silk{fill:none;stroke:var(--silk);stroke-width:1;opacity:.7}
+#pcb text{fill:var(--silk);font:600 9px "IBM Plex Sans Condensed",sans-serif;opacity:.8}
+#pcbSig .sig{fill:none;stroke:var(--sig);stroke-width:2.6;stroke-linecap:round;stroke-dasharray:4 96;stroke-dashoffset:0;opacity:.85;animation:flow linear infinite}
+#pcbSig.paused .sig{animation-play-state:paused}
+@keyframes flow{to{stroke-dashoffset:-100}}
+@media (prefers-reduced-motion: reduce){#pcbSig{display:none}}
+
+/* header */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--header);border-bottom:1px solid var(--line)}
+.top-inner{max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:10px 20px}
+.brand{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;font-size:15px;white-space:nowrap;color:var(--ink);text-decoration:none}
+.brand span{color:var(--copper)}
+nav.toc{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+nav.toc::-webkit-scrollbar{display:none}
+nav.toc a{font-size:14px;color:var(--muted);text-decoration:none;padding:5px 10px;border-radius:999px;white-space:nowrap}
+nav.toc a:hover{color:var(--ink);background:var(--surface-2)}
+nav.toc a.on{color:var(--ink);background:var(--copper-soft)}
+
+main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:28px 20px 80px}
+
+/* hero */
+.hero{padding:40px 0 30px}
+.hero h1{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;font-size:clamp(34px,6vw,64px);line-height:1.02;letter-spacing:-.01em;margin:0 0 16px;max-width:15ch}
+.hero p.lede{max-width:62ch;color:var(--muted);font-size:18px;margin:0 0 30px;background:var(--surface);border-radius:12px;padding:12px 16px;width:fit-content}
+.laws{display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.law{padding:20px 20px 18px;border-right:1px solid var(--line)}
+.law:last-child{border-right:0}
+.law .big{font-family:"IBM Plex Mono",monospace;font-size:clamp(20px,2.2vw,26px);white-space:nowrap;font-weight:500;color:var(--copper);line-height:1.2;margin-bottom:8px}
+.law h3{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:17px;margin:0 0 4px}
+.law p{margin:0;font-size:14.5px;color:var(--muted);line-height:1.5}
+.hero .after{max-width:70ch;margin:22px 0 0;font-size:16px;background:var(--surface);border-radius:12px;padding:12px 16px;width:fit-content}
+@media (max-width:820px){.laws{grid-template-columns:1fr 1fr}.law:nth-child(2){border-right:0}.law:nth-child(-n+2){border-bottom:1px solid var(--line)}}
+@media (max-width:460px){.laws{grid-template-columns:1fr}.law{border-right:0;border-bottom:1px solid var(--line)}.law:last-child{border-bottom:0}}
+
+/* sections */
+section.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:34px clamp(18px,4vw,48px) 30px;margin:26px 0}
+.sec-ref{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:600;color:var(--copper);font-size:15px;margin:0 0 2px}
+section.panel>h2{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;font-size:clamp(26px,3.6vw,36px);line-height:1.1;margin:0 0 18px;letter-spacing:-.005em}
+h3.sub{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:600;font-size:21px;margin:30px 0 8px}
+.prose{max-width:70ch}
+.prose p{margin:0 0 14px}
+p.pages{font-size:14px;color:var(--muted);margin:-10px 0 18px}
+
+.eq{font-family:"IBM Plex Mono",monospace;font-size:17px;background:var(--surface-2);border-left:3px solid var(--copper);border-radius:0 10px 10px 0;padding:12px 16px;margin:14px 0;overflow-x:auto;line-height:2}
+.eq .note{font-family:"IBM Plex Sans",sans-serif;font-size:14px;color:var(--muted);margin-left:10px}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.35;margin:0 2px}
+.frac>span{padding:0 4px}
+.frac>span:first-child{border-bottom:1.5px solid currentColor}
+sub{font-size:.72em}
+
+.example{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:18px 0}
+.example h4{margin:0 0 6px;font-family:"IBM Plex Sans Condensed",sans-serif;font-size:17px}
+.example p{margin:0 0 8px}
+.example ol{margin:6px 0 0;padding-left:22px}
+.example li{margin:3px 0}
+.mono{font-family:"IBM Plex Mono",monospace;font-size:.93em}
+
+.callout{border-radius:12px;padding:14px 18px;margin:18px 0;border:1px solid var(--line)}
+.callout.tip{background:var(--copper-soft);border-color:transparent}
+.callout.warn{background:var(--warn-bg);border-color:transparent}
+.callout b.h{display:block;font-family:"IBM Plex Sans Condensed",sans-serif;font-size:17px;margin-bottom:2px}
+.callout p{margin:0 0 6px}.callout p:last-child{margin:0}
+
+.tbl{overflow-x:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:600;font-size:15px;color:var(--muted)}
+td.num,th.num{text-align:right;font-family:"IBM Plex Mono",monospace;font-size:14px;white-space:nowrap}
+
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+
+figure.schem{margin:18px 0;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px}
+figure.schem svg{display:block;width:100%;height:auto;max-width:440px;margin:0 auto}
+figure.schem figcaption{font-size:13.5px;color:var(--muted);text-align:center;margin-top:6px}
+.schem .w{stroke:var(--ink);stroke-width:1.8;fill:none;stroke-linecap:round}
+.schem .dot{fill:var(--ink)}
+.schem text{fill:var(--ink);font:500 12.5px "IBM Plex Sans",sans-serif}
+.schem text.v{fill:var(--copper);font-weight:600}
+.schem text.i{fill:var(--signal);font-weight:600}
+.schem .arrow{fill:var(--signal)}
+.schem .dim{opacity:.22}
+
+ol.steps{padding-left:22px}
+ol.steps li{margin:6px 0}
+
+/* simulator & tools */
+.sim{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:22px;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:18px;margin:20px 0}
+@media (max-width:860px){.sim{grid-template-columns:1fr}}
+.ctrl{margin:0 0 12px}
+.ctrl label{display:flex;justify-content:space-between;font-size:14.5px;font-weight:500}
+.ctrl label output{font-family:"IBM Plex Mono",monospace;color:var(--copper)}
+input[type=range]{width:100%;accent-color:var(--copper)}
+.readout{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.ro{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.ro small{display:block;color:var(--muted);font-size:12.5px}
+.ro b{font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:17px}
+.ro.hero-ro{grid-column:1/-1}
+.ro.hero-ro b{font-size:30px;color:var(--copper)}
+.meter{height:10px;border-radius:5px;background:var(--line);overflow:hidden;margin-top:6px}
+.meter i{display:block;height:100%;background:var(--copper);width:30%;transition:width .2s}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 14px}
+.verdict{font-size:14.5px;margin-top:10px;min-height:2.8em}
+
+button,.btn{font:inherit;font-size:14.5px;font-weight:500;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 14px;cursor:pointer}
+button:hover{border-color:var(--copper)}
+button.primary{background:var(--copper);border-color:var(--copper);color:var(--board)}
+button.on{background:var(--copper-soft);border-color:var(--copper)}
+:focus-visible{outline:2.5px solid var(--signal);outline-offset:2px}
+input[type=text],input[type=number],select{font:inherit;font-family:"IBM Plex Mono",monospace;font-size:15px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;width:100%}
+input[type=text]:focus,select:focus{border-color:var(--copper);outline:none}
+
+.tool{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:18px;margin:18px 0}
+.tool h3{margin:0 0 4px;font-family:"IBM Plex Sans Condensed",sans-serif;font-size:21px}
+.tool p.help{margin:0 0 14px;color:var(--muted);font-size:14.5px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.grid4{grid-template-columns:1fr 1fr}}
+.field label{display:block;font-size:14px;font-weight:600;margin-bottom:4px}
+.field label span{font-weight:400;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.out{margin-top:14px;font-size:15px}
+.out .err{color:var(--bad)}
+
+/* formula sheet */
+.sheet{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.sheet{grid-template-columns:1fr}}
+.fcard{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--surface-2)}
+.fcard h3{margin:0 0 8px;font-family:"IBM Plex Sans Condensed",sans-serif;font-size:18px;color:var(--copper)}
+.fcard .f{font-family:"IBM Plex Mono",monospace;font-size:15px;line-height:2.1}
+.fcard .f .c{font-family:"IBM Plex Sans",sans-serif;color:var(--muted);font-size:13.5px}
+.fcard.wide{grid-column:1/-1}
+
+/* practice */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 16px}
+.prob{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:20px}
+.prob .topic{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:600;color:var(--copper);font-size:15px}
+.prob .q{font-size:17.5px;margin:4px 0 16px;max-width:66ch}
+.ans{display:grid;grid-template-columns:10em minmax(0,220px) 3em 1fr;gap:8px 10px;align-items:center;margin:8px 0}
+.ans .lbl{font-weight:500;font-size:15px}
+.ans .unit{font-family:"IBM Plex Mono",monospace;color:var(--muted);font-size:15px;min-width:2.5em}
+.ans .mark{font-weight:600;font-size:14.5px}
+.mark.ok{color:var(--good)}.mark.no{color:var(--bad)}
+@media (max-width:560px){.ans{grid-template-columns:1fr auto}.ans .lbl{grid-column:1/-1}.ans .mark{grid-column:1/-1}}
+.sol{display:none;border-top:1px dashed var(--line);margin-top:16px;padding-top:12px}
+.sol.show{display:block}
+.sol p{margin:0 0 8px}
+.score{font-size:15px;color:var(--muted);margin-top:12px}
+.score b{color:var(--ink);font-family:"IBM Plex Mono",monospace}
+
+.mc{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0;background:var(--surface-2)}
+.mc p.qq{margin:0 0 10px;font-weight:500}
+.mc .opts{display:flex;flex-wrap:wrap;gap:8px}
+.mc .opts button.right{background:transparent;border-color:var(--good);color:var(--good)}
+.mc .opts button.wrong{border-color:var(--bad);color:var(--bad)}
+.mc .fb{margin:10px 0 0;font-size:15px;display:none}
+.mc .fb.show{display:block}
+
+.fix{border-left:3px solid var(--bad);padding:2px 0 2px 16px;margin:16px 0}
+.fix h4{margin:0 0 4px;font-family:"IBM Plex Sans Condensed",sans-serif;font-size:17px}
+.fix p{margin:0 0 6px}
+
+footer{position:relative;z-index:1;text-align:center;color:var(--muted);font-size:13.5px;padding:0 20px 40px}
+</style>
+</head>
+<body>
+<svg id="pcb" aria-hidden="true" viewBox="0 0 1600 1000"></svg>
+<img id="pcbImg" alt="" aria-hidden="true">
+<svg id="pcbSig" aria-hidden="true" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1600 1000"></svg>
+
+<!-- shared schematic symbols -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="rv" overflow="visible"><path d="M0 0 v12 l-7 3 l14 6 l-14 6 l14 6 l-14 6 l14 6 l-7 3 v12" fill="none"/></symbol>
+    <symbol id="rh" overflow="visible"><path d="M0 0 h12 l3 -7 l6 14 l6 -14 l6 14 l6 -14 l6 14 l3 -7 h12" fill="none"/></symbol>
+    <symbol id="bat" overflow="visible"><path d="M-15 0 h30 M-8 10 h16" fill="none" stroke-width="2.4"/></symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="top-inner">
+    <a class="brand" href="#top">PEFI <span>§2.12</span></a>
+    <nav class="toc" id="toc">
+      <a href="#prefixes">Prefixes</a>
+      <a href="#ohm">Ohm &amp; power</a>
+      <a href="#ratings">Ratings</a>
+      <a href="#parallel">Parallel</a>
+      <a href="#series">Series</a>
+      <a href="#dividers">Dividers</a>
+      <a href="#networks">Networks</a>
+      <a href="#multi">Multi-dividers</a>
+      <a href="#fixes">Book typos</a>
+      <a href="#formulas">Formula sheet</a>
+      <a href="#tools">Tools</a>
+      <a href="#practice">Practice</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+<div class="hero">
+  <h1>Resistor circuits, from Ohm’s law to voltage dividers</h1>
+  <p class="lede">A study guide for <em>Practical Electronics for Inventors</em>, 4th edition, sections 2.12 through 2.12.5 (pages 51 to 62). Everything in these pages grows out of the four relationships below.</p>
+  <div class="laws">
+    <div class="law"><div class="big">V = I R</div><h3>Ohm’s law</h3><p>Voltage pushes current through resistance. More push, more current; more resistance, less current.</p></div>
+    <div class="law"><div class="big">P = I V</div><h3>Power law</h3><p>How fast a part turns electrical energy into heat, in watts.</p></div>
+    <div class="law"><div class="big">ΣI<sub>in</sub> = ΣI<sub>out</sub></div><h3>Kirchhoff’s current law</h3><p>Current that flows into a junction must flow out of it. Nothing piles up.</p></div>
+    <div class="law"><div class="big">ΣV<sub>drops</sub> = V<sub>source</sub></div><h3>Kirchhoff’s voltage law</h3><p>Go around any loop and the drops add up to what the source supplies.</p></div>
+  </div>
+  <p class="after">The parallel formula is KCL plus Ohm’s law. The series formula is KVL plus Ohm’s law. The divider equations are the series formula plus Ohm’s law. The 10 percent rule is KCL plus Ohm’s law with one design choice. When you get stuck on a problem, ask two questions: what is shared here (voltage or current), and which of these four laws connects what I know to what I need?</p>
+</div>
+
+<!-- PREFIXES -->
+<section class="panel" id="prefixes">
+  <p class="sec-ref">Unit prefixes box, page 51</p>
+  <h2>Unit prefixes: just powers of ten</h2>
+  <div class="prose">
+    <p>Resistances tend to be big numbers (thousands or millions of ohms), while the currents, voltages and powers in small circuits tend to be tiny fractions of a unit. Prefixes are shorthand so you don’t have to write all the zeros. Each step on the common ladder is a factor of 1000, so converting is always a matter of moving the decimal point three places per step.</p>
+    <p>The safest habit while you’re learning is to convert everything to base units (Ω, A, V, W) before you calculate, then convert the answer back to a prefix at the end. For example, 0.0000594 A has the decimal moved six places to make 59.4, so it’s 59.4 × 10<sup>−6</sup> A, which is 59.4 µA. Going the other way, 2,000,000 Ω is 2 × 10<sup>6</sup> Ω, or 2 MΩ.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Prefix</th><th>Symbol</th><th class="num">Multiplier</th><th>Example from the book</th></tr></thead>
+    <tbody>
+      <tr><td>mega</td><td>M</td><td class="num">× 10<sup>6</sup> = 1,000,000</td><td>2,000,000 Ω = 2 MΩ</td></tr>
+      <tr><td>kilo</td><td>k</td><td class="num">× 10<sup>3</sup> = 1000</td><td>100,000 Ω = 100 kΩ</td></tr>
+      <tr><td>(none)</td><td></td><td class="num">× 1</td><td>12 V, 100 Ω</td></tr>
+      <tr><td>milli</td><td>m</td><td class="num">× 10<sup>−3</sup> = 0.001</td><td>0.0035 V = 3.5 mV, 0.166 W = 166 mW</td></tr>
+      <tr><td>micro</td><td>µ</td><td class="num">× 10<sup>−6</sup></td><td>0.0000594 A = 59.4 µA</td></tr>
+      <tr><td>nano</td><td>n</td><td class="num">× 10<sup>−9</sup></td><td>mostly capacitors, later chapters</td></tr>
+      <tr><td>pico</td><td>p</td><td class="num">× 10<sup>−12</sup></td><td>tiny capacitances</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout tip">
+    <b class="h">The shortcut that makes this chapter easier</b>
+    <p>Kilo (10<sup>3</sup>) and milli (10<sup>−3</sup>) cancel out, so you can skip the decimals entirely for most problems in this section: <span class="mono">kΩ × mA = V</span>, <span class="mono">V ÷ kΩ = mA</span>, and <span class="mono">V × mA = mW</span>. Example 1 on page 52 becomes instant: 1 mA through 4.7 kΩ is 1 × 4.7 = 4.7 V, and 4.7 V × 1 mA = 4.7 mW.</p>
+  </div>
+  <div class="callout warn">
+    <b class="h">Watch the capital letter</b>
+    <p>M (mega, a million) and m (milli, a thousandth) are a factor of a billion apart. 2 MΩ and 2 mΩ are wildly different parts.</p>
+  </div>
+</section>
+
+<!-- OHM -->
+<section class="panel" id="ohm">
+  <p class="sec-ref">§2.12, Figure 2.39, page 51</p>
+  <h2>Ohm’s law and the three faces of power</h2>
+  <div class="two">
+    <div class="prose">
+      <p>Ohm’s law says V = IR. Rearranged, it gives I = V/R and R = V/I, so if you know any two of voltage, current and resistance, you can find the third. A good gut check: for a fixed resistor, doubling the voltage doubles the current. For a fixed voltage, doubling the resistance halves the current.</p>
+      <p>Power is P = IV. Because V = IR, you can substitute to get P = I × (IR) = I²R. Because I = V/R, you can also get P = (V/R) × V = V²/R. These are the same equation wearing three outfits, so pick the one that uses the two quantities you already know. That saves a step and avoids rounding errors creeping in.</p>
+      <p>Figure 2.39 puts a 100 Ω resistor across a 12 V battery. The current is 12 V ÷ 100 Ω = 0.12 A = 120 mA. The power is 0.12 A × 12 V = 1.44 W. You get the same 1.44 W from I²R (0.0144 × 100) and from V²/R (144 ÷ 100), which is a nice way to check your work.</p>
+    </div>
+    <figure class="schem">
+      <svg viewBox="0 0 300 210" role="img" aria-label="12 volt battery across a 100 ohm resistor with 120 milliamps flowing">
+        <g class="w">
+          <path d="M50 30 V96 M50 114 V180 M50 30 H220 V70 M220 130 V180 H50"/>
+          <use href="#bat" x="50" y="100"/>
+          <use href="#rv" x="220" y="70"/>
+        </g>
+        <path class="arrow" d="M140 30 l-9 -5 v10z"/>
+        <text x="31" y="108" text-anchor="end">12 V</text><text x="66" y="98" font-size="15">+</text>
+        <text x="234" y="96">R</text><text x="234" y="112">100 Ω</text>
+        <text class="i" x="105" y="20">I = 120 mA</text>
+        <text class="v" x="100" y="160">P = 1.44 W of heat</text>
+      </svg>
+      <figcaption>The example from Figure 2.39</figcaption>
+    </figure>
+  </div>
+  <h3 class="sub">Every rearrangement in one table</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>To find</th><th>Know I and R</th><th>Know V and R</th><th>Know V and I</th><th>Know P and one other</th></tr></thead>
+    <tbody>
+      <tr><td><b>V</b></td><td class="mono">I × R</td><td>(given)</td><td>(given)</td><td class="mono">P ÷ I &nbsp; or &nbsp; √(P × R)</td></tr>
+      <tr><td><b>I</b></td><td>(given)</td><td class="mono">V ÷ R</td><td>(given)</td><td class="mono">P ÷ V &nbsp; or &nbsp; √(P ÷ R)</td></tr>
+      <tr><td><b>R</b></td><td>(given)</td><td>(given)</td><td class="mono">V ÷ I</td><td class="mono">V² ÷ P &nbsp; or &nbsp; P ÷ I²</td></tr>
+      <tr><td><b>P</b></td><td class="mono">I² × R</td><td class="mono">V² ÷ R</td><td class="mono">I × V</td><td>(given)</td></tr>
+    </tbody>
+  </table></div>
+  <h3 class="sub">The page 52 examples, side by side</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Example</th><th>Given</th><th>Work</th><th>Answer</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>1.0 mA through 4.7 kΩ</td><td class="mono">V = IR; P = I²R</td><td class="mono">4.7 V, 4.7 mW</td></tr>
+      <tr><td>2</td><td>24 V across, 50 mA through</td><td class="mono">R = V/I; P = IV</td><td class="mono">480 Ω, 1.2 W</td></tr>
+      <tr><td>3</td><td>3 V across 1 MΩ</td><td class="mono">I = V/R; P = V²/R</td><td class="mono">3 µA, 9 µW</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- RATINGS -->
+<section class="panel" id="ratings">
+  <p class="sec-ref">§2.12.1, Figure 2.40, pages 51 to 52</p>
+  <h2>Power ratings: don’t cook the resistor</h2>
+  <div class="prose">
+    <p>Every real resistor has a maximum power it can safely turn into heat. Go past it and the resistor overheats, its internal structure gets damaged, its resistance drifts, and eventually it smokes. Ordinary through-hole resistors come in ⅛, ¼, ½ and 1 W ratings. Power resistors go from 2 W up to several hundred watts. (Surface-mount parts are often smaller still: a tiny 0402 chip resistor is commonly rated around 1/16 W.)</p>
+    <p>The rule of thumb is to pick a rating at least twice the power you expect. In Figure 2.39 the resistor dissipates 1.44 W, so twice that is 2.88 W. A 2 W part would survive, but a 3 W part is the one that follows the rule and gives you a safety margin for heat, tolerances and surprises.</p>
+    <p>Figure 2.40 teaches the counterintuitive part. With the voltage fixed, P = V²/R, so a <em>smaller</em> resistance means <em>more</em> power. At 5 V, a 200 Ω resistor dissipates 0.125 W, a 100 Ω dissipates 0.25 W, a 50 Ω dissipates 0.5 W, and a 25 Ω dissipates a full 1 W. Lower the resistance and the current climbs, and it climbs faster than the voltage-times-current product shrinks. That’s why a small resistor placed straight across a supply is the one that melts.</p>
+  </div>
+  <div class="example">
+    <h4>Example 4, page 52: the highest voltage each 1 W resistor can take</h4>
+    <p>Start from P = V²/R and solve for V: V = √(P × R). With P = 1 W:</p>
+    <div class="tbl" style="margin:8px 0 4px"><table>
+      <thead><tr><th>R</th><th class="num">√(1 W × R)</th><th class="num">Max voltage</th></tr></thead>
+      <tbody>
+        <tr><td>2 Ω</td><td class="num">√2</td><td class="num">1.41 V</td></tr>
+        <tr><td>100 Ω</td><td class="num">√100</td><td class="num">10.0 V</td></tr>
+        <tr><td>3 kΩ</td><td class="num">√3000</td><td class="num">54.8 V</td></tr>
+        <tr><td>68 kΩ</td><td class="num">√68,000</td><td class="num">260.8 V</td></tr>
+        <tr><td>1 MΩ</td><td class="num">√1,000,000</td><td class="num">1000 V</td></tr>
+      </tbody>
+    </table></div>
+    <p>The same trick gives the maximum current: I = √(P ÷ R). For the 100 Ω part that’s √(0.01) = 0.1 A.</p>
+  </div>
+  <div class="callout tip">
+    <b class="h">Extra beyond the book</b>
+    <p>Real resistors also have a maximum working voltage, often 200 to 500 V for small through-hole parts. So the 1 MΩ resistor would hit its voltage limit (and could arc) long before it reached 1 W at 1000 V. For the low-value resistors, power is the limit; for very high values, voltage usually is.</p>
+  </div>
+</section>
+
+<!-- PARALLEL -->
+<section class="panel" id="parallel">
+  <p class="sec-ref">§2.12.2, Figures 2.41 and 2.42, pages 52 to 55</p>
+  <h2>Resistors in parallel: same voltage, split current</h2>
+  <div class="two">
+    <div class="prose">
+      <p>Resistors are in parallel when both ends of each one connect to the same two nodes. That means every resistor sees exactly the same voltage. The current, on the other hand, splits up between the branches, and more of it goes through the smaller resistance because that path is easier.</p>
+      <p>Every branch you add is another path for current, so the total resistance goes <em>down</em>. The total is always lower than the smallest resistor in the group. That gives you a free sanity check: if you put 1 kΩ and 3 kΩ in parallel and get anything above 1 kΩ, something went wrong.</p>
+    </div>
+    <figure class="schem">
+      <svg viewBox="-12 0 342 210" role="img" aria-label="12 volt battery feeding 1 kilohm and 3 kilohm resistors in parallel">
+        <g class="w">
+          <path d="M40 30 V96 M40 114 V180 M40 30 H270 M40 180 H270 M160 30 V75 M160 135 V180 M270 30 V75 M270 135 V180"/>
+          <use href="#bat" x="40" y="100"/>
+          <use href="#rv" x="160" y="75"/>
+          <use href="#rv" x="270" y="75"/>
+        </g>
+        <circle class="dot" cx="160" cy="30" r="3.2"/><circle class="dot" cx="160" cy="180" r="3.2"/>
+        <path class="arrow" d="M105 30 l-9 -5 v10z"/>
+        <path class="arrow" d="M150 158 l-5 -9 h10z"/><path class="arrow" d="M260 158 l-5 -9 h10z"/>
+        <text x="21" y="108" text-anchor="end">12 V</text><text x="56" y="98" font-size="15">+</text>
+        <text x="172" y="100">R1</text><text x="172" y="116">1.0 kΩ</text>
+        <text x="282" y="100">R2</text><text x="282" y="116">3.0 kΩ</text>
+        <text class="i" x="70" y="20">I<tspan font-size="9" dy="3">in</tspan><tspan dy="-3"> = 16 mA</tspan></text>
+        <text class="i" x="104" y="166">12 mA</text><text class="i" x="218" y="166">4 mA</text>
+        <text class="v" x="172" y="200">both see 12 V</text>
+      </svg>
+      <figcaption>Example 1 on page 53</figcaption>
+    </figure>
+  </div>
+  <div class="eq">1/R<sub>total</sub> = 1/R<sub>1</sub> + 1/R<sub>2</sub> + 1/R<sub>3</sub> + …<span class="note">(Eq. 2.17, any number of resistors)</span></div>
+  <div class="eq">R<sub>total</sub> = <span class="frac"><span>R<sub>1</sub> × R<sub>2</sub></span><span>R<sub>1</sub> + R<sub>2</sub></span></span><span class="note">(Eq. 2.18, exactly two resistors: “product over sum”)</span></div>
+  <div class="prose">
+    <p><b>Where the formula comes from.</b> By KCL, the total current is the sum of the branch currents: I<sub>total</sub> = I<sub>1</sub> + I<sub>2</sub> + I<sub>3</sub> + …. By Ohm’s law, each branch current is V/R<sub>n</sub>, and V is the same for all of them. So I<sub>total</sub> = V × (1/R<sub>1</sub> + 1/R<sub>2</sub> + …). The whole combination also obeys Ohm’s law, I<sub>total</sub> = V/R<sub>total</sub>, so the bracket must equal 1/R<sub>total</sub>. (The book says the bracket is R<sub>total</sub>, but it’s really the reciprocal. See the book typos section.)</p>
+    <p><b>The || shorthand.</b> R<sub>1</sub> || R<sub>2</sub> means “R<sub>1</sub> in parallel with R<sub>2</sub>.” Treat || like multiplication in the order of operations: in Z = R<sub>1</sub> + R<sub>2</sub> || R<sub>load</sub>, you do R<sub>2</sub> || R<sub>load</sub> first, then add R<sub>1</sub>.</p>
+  </div>
+  <div class="callout tip">
+    <b class="h">Shortcuts worth knowing</b>
+    <p>Two equal resistors in parallel give half: 10 kΩ || 10 kΩ = 5 kΩ. In general, n equal resistors give R/n. If one resistor is ten or more times bigger than the other, the total is just a bit under the smaller one: 1 kΩ || 1 MΩ ≈ 999 Ω.</p>
+  </div>
+  <h3 class="sub">The current divider</h3>
+  <div class="eq">I<sub>1</sub> = I<sub>in</sub> × <span class="frac"><span>R<sub>2</sub></span><span>R<sub>1</sub> + R<sub>2</sub></span></span> &nbsp;&nbsp; I<sub>2</sub> = I<sub>in</sub> × <span class="frac"><span>R<sub>1</sub></span><span>R<sub>1</sub> + R<sub>2</sub></span></span></div>
+  <div class="prose">
+    <p>Use these when you know the total current going into a parallel pair but not the voltage. Notice that the <em>other</em> resistor goes on top. That looks backwards at first, but it makes sense: if R<sub>2</sub> is enormous, almost no current goes through it, so nearly all of I<sub>in</sub> goes through R<sub>1</sub>, and the formula gives I<sub>1</sub> ≈ I<sub>in</sub>. Check it on the example: 16 mA × 3k/(1k + 3k) = 12 mA. ✓</p>
+    <p><b>Power in parallel.</b> Since every resistor has the same V, use P = V²/R. The smallest resistor carries the most current and dissipates the most power, so it’s the one that needs the biggest rating.</p>
+  </div>
+  <div class="example">
+    <h4>Example 1, page 53: 1 kΩ || 3 kΩ on 12 V</h4>
+    <ol>
+      <li>R<sub>total</sub> = (1000 × 3000) ÷ (1000 + 3000) = 3,000,000 ÷ 4000 = <b>750 Ω</b></li>
+      <li>I<sub>1</sub> = 12 V ÷ 1 kΩ = <b>12 mA</b>, I<sub>2</sub> = 12 V ÷ 3 kΩ = <b>4 mA</b></li>
+      <li>KCL: I<sub>in</sub> = 12 + 4 = <b>16 mA</b> (check: 12 V ÷ 750 Ω = 16 mA ✓)</li>
+      <li>P<sub>1</sub> = 12 mA × 12 V = <b>144 mW</b>, P<sub>2</sub> = 4 mA × 12 V = <b>48 mW</b>, total <b>192 mW</b></li>
+    </ol>
+  </div>
+  <div class="example">
+    <h4>Example 2, page 54: 1 kΩ, 2 kΩ and 4 kΩ in parallel on 24 V</h4>
+    <ol>
+      <li>1/R<sub>total</sub> = 1/1000 + 1/2000 + 1/4000 = 0.001 + 0.0005 + 0.00025 = 0.00175 Ω<sup>−1</sup></li>
+      <li>R<sub>total</sub> = 1 ÷ 0.00175 = <b>571 Ω</b> (the book rounds to 572)</li>
+      <li>Branch currents: 24 V ÷ 1k = 24 mA, 24 V ÷ 2k = 12 mA, 24 V ÷ 4k = 6 mA</li>
+      <li>KCL: I<sub>total</sub> = 24 + 12 + 6 = <b>42 mA</b></li>
+      <li>Powers: 24 V × 24 mA = 576 mW, 24 V × 12 mA = 288 mW, 24 V × 6 mA = 144 mW, total ≈ <b>1.0 W</b></li>
+    </ol>
+    <p style="margin-top:8px">Notice the pattern: each time the resistance doubles, the current and power halve. Also, by the 2× rule R<sub>1</sub> should really be rated above 1.15 W, so the 1 W part in Figure 2.42 is cutting it close.</p>
+  </div>
+</section>
+
+<!-- SERIES -->
+<section class="panel" id="series">
+  <p class="sec-ref">§2.12.3, Figures 2.43 and 2.46, pages 55 to 58</p>
+  <h2>Resistors in series: same current, split voltage</h2>
+  <div class="two">
+    <div class="prose">
+      <p>Resistors are in series when they’re connected end to end with nothing else branching off between them. There’s only one path, so the same current flows through every one. The voltage is what splits up, and each resistor gets a share proportional to its resistance.</p>
+      <p>The total resistance is simply the sum, R<sub>total</sub> = R<sub>1</sub> + R<sub>2</sub> + R<sub>3</sub> + … (Eq. 2.19), and it’s always bigger than the largest resistor. The derivation is the mirror image of the parallel one: by KVL, V<sub>total</sub> = V<sub>1</sub> + V<sub>2</sub> + …; each drop is I × R<sub>n</sub> with the same I; so I × R<sub>total</sub> = I × R<sub>1</sub> + I × R<sub>2</sub> + …, and the I’s cancel.</p>
+    </div>
+    <figure class="schem">
+      <svg viewBox="0 0 320 220" role="img" aria-label="9 volt battery with 1 kilohm and 2 kilohm resistors in series">
+        <g class="w">
+          <path d="M50 30 V101 M50 119 V195 M50 30 H200 V40 M200 100 V125 M200 185 V195 H50"/>
+          <use href="#bat" x="50" y="105"/>
+          <use href="#rv" x="200" y="40"/>
+          <use href="#rv" x="200" y="125"/>
+          <path d="M200 112 H245"/>
+        </g>
+        <circle class="dot" cx="200" cy="112" r="3.2"/>
+        <path class="arrow" d="M130 30 l-9 -5 v10z"/>
+        <text x="31" y="113" text-anchor="end">9 V</text><text x="66" y="103" font-size="15">+</text>
+        <text x="212" y="66">R1 1 kΩ</text><text class="v" x="212" y="82">3 V</text>
+        <text x="212" y="151">R2 2 kΩ</text><text class="v" x="212" y="167">6 V</text>
+        <text x="250" y="116">V<tspan font-size="9" dy="3">out</tspan></text>
+        <text class="i" x="96" y="20">I = 3 mA everywhere</text>
+      </svg>
+      <figcaption>Example 1 on page 55, which is also a voltage divider</figcaption>
+    </figure>
+  </div>
+  <h3 class="sub">The voltage divider</h3>
+  <div class="eq">V<sub>1</sub> = V<sub>in</sub> × <span class="frac"><span>R<sub>1</sub></span><span>R<sub>1</sub> + R<sub>2</sub></span></span> &nbsp;&nbsp; V<sub>2</sub> = V<sub>out</sub> = V<sub>in</sub> × <span class="frac"><span>R<sub>2</sub></span><span>R<sub>1</sub> + R<sub>2</sub></span></span></div>
+  <div class="prose">
+    <p>These come from plugging I = V<sub>in</sub>/(R<sub>1</sub> + R<sub>2</sub>) into V = IR for each resistor. The book says they’re worth memorizing, and they are. Unlike the current divider, here the <em>same</em> resistor goes on top: a bigger resistor gets a bigger share of the voltage. The 2 kΩ resistor gets twice the voltage of the 1 kΩ one (6 V versus 3 V), and together they add back up to the 9 V supply.</p>
+    <p><b>Power in series.</b> Every resistor has the same I, so use P = I²R. The <em>largest</em> resistor dissipates the most power, which is the opposite of the parallel case. In the example, the 2 kΩ dissipates 18 mW and the 1 kΩ dissipates 9 mW.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th></th><th>Series</th><th>Parallel</th></tr></thead>
+    <tbody>
+      <tr><td><b>Shared by all</b></td><td>Current</td><td>Voltage</td></tr>
+      <tr><td><b>Splits up</b></td><td>Voltage (KVL)</td><td>Current (KCL)</td></tr>
+      <tr><td><b>Total resistance</b></td><td class="mono">R₁ + R₂ + …, bigger than the largest</td><td class="mono">1/(1/R₁ + 1/R₂ + …), smaller than the smallest</td></tr>
+      <tr><td><b>Who gets more</b></td><td>Bigger R gets more voltage</td><td>Smaller R gets more current</td></tr>
+      <tr><td><b>Hottest resistor</b></td><td>The largest (P = I²R)</td><td>The smallest (P = V²/R)</td></tr>
+      <tr><td><b>Divider formula</b></td><td>Same resistor on top</td><td>Other resistor on top</td></tr>
+    </tbody>
+  </table></div>
+  <div class="example">
+    <h4>Example 1, pages 55 to 56: 1 kΩ + 2 kΩ on 9 V</h4>
+    <ol>
+      <li>R<sub>total</sub> = 1 kΩ + 2 kΩ = <b>3 kΩ</b></li>
+      <li>I = 9 V ÷ 3 kΩ = <b>3 mA</b>, the same through both</li>
+      <li>V<sub>1</sub> = 3 mA × 1 kΩ = <b>3 V</b>, V<sub>2</sub> = 3 mA × 2 kΩ = <b>6 V</b> (KVL check: 3 + 6 = 9 ✓)</li>
+      <li>P<sub>1</sub> = 3 V × 3 mA = <b>9 mW</b>, P<sub>2</sub> = 6 V × 3 mA = <b>18 mW</b>, total <b>27 mW</b></li>
+    </ol>
+  </div>
+  <div class="example">
+    <h4>Example on page 58: 3.3 kΩ + 4.7 kΩ + 10 kΩ on 24 V</h4>
+    <ol>
+      <li>R<sub>total</sub> = 3.3 + 4.7 + 10 = <b>18 kΩ</b></li>
+      <li>I = 24 V ÷ 18 kΩ = <b>1.33 mA</b></li>
+      <li>V<sub>1</sub> = 1.33 × 3.3 = <b>4.40 V</b>, V<sub>2</sub> = 1.33 × 4.7 = <b>6.27 V</b>, V<sub>3</sub> = 1.33 × 10 = <b>13.3 V</b> (sum 24 V ✓)</li>
+      <li>P = I × V for each: about <b>5.9 mW, 8.4 mW and 17.8 mW</b>, total <b>32 mW</b></li>
+    </ol>
+    <p style="margin-top:8px">The labels in Figure 2.46 differ slightly in the last digit because of rounding; don’t let that throw you.</p>
+  </div>
+</section>
+
+<!-- DIVIDERS -->
+<section class="panel" id="dividers">
+  <p class="sec-ref">§2.12.3 continued, Figures 2.44 and 2.45, pages 56 to 58</p>
+  <h2>Designing a voltage divider, and why loads ruin naive ones</h2>
+  <div class="prose">
+    <p><b>The unloaded case.</b> If whatever you connect to V<sub>out</sub> draws almost no current (Example 2 uses an IC with a 10 MΩ input), you can use the divider equation directly. Pick R<sub>2</sub>, then rearrange for R<sub>1</sub>. With a 9 V supply, a 5 V target and R<sub>2</sub> = 10 kΩ, R<sub>1</sub> = 10 kΩ × (9 − 5) ÷ 5 = 8 kΩ. The rearranged formula is worth having on your sheet:</p>
+  </div>
+  <div class="eq">R<sub>1</sub> = R<sub>2</sub> × <span class="frac"><span>V<sub>in</sub> − V<sub>out</sub></span><span>V<sub>out</sub></span></span></div>
+  <div class="prose">
+    <p><b>The catch.</b> A load connected across R<sub>2</sub> is another resistor in parallel with R<sub>2</sub>. Parallel combinations are always smaller, so the bottom half of the divider effectively shrinks and V<sub>out</sub> drops. Example 3 shows how bad this gets. A 3 V device drawing 9.1 mA behaves like a 3 V ÷ 9.1 mA ≈ 330 Ω resistor. A naive 10 V to 3 V divider of R<sub>1</sub> = 7 kΩ and R<sub>2</sub> = 3 kΩ gives exactly 3 V with nothing attached, but plug the device in and the bottom becomes 3 kΩ || 330 Ω ≈ 297 Ω. Now V<sub>out</sub> = 10 × 297 ÷ (7000 + 297) ≈ 0.41 V. The device won’t even turn on.</p>
+    <p><b>The 10 percent rule</b> fixes this by designing the divider around the load current instead of ignoring it. You deliberately let a small extra current, the <em>bleeder current</em>, flow through R<sub>2</sub>, equal to 10 percent of the load current. Then R<sub>1</sub> is sized to carry the bleeder current plus the load current while dropping the leftover voltage. Larger bleeder currents make the output stiffer (less sensitive to load changes) but waste more power; 10 percent is the textbook compromise.</p>
+  </div>
+  <ol class="steps">
+    <li><b>Bleeder current:</b> I<sub>bleed</sub> = 0.10 × I<sub>load</sub></li>
+    <li><b>Bleeder resistor:</b> R<sub>2</sub> = V<sub>out</sub> ÷ I<sub>bleed</sub>, then pick the nearest standard value</li>
+    <li><b>Current through R<sub>1</sub>:</b> I<sub>1</sub> = I<sub>bleed</sub> + I<sub>load</sub> (KCL at the output node)</li>
+    <li><b>Top resistor:</b> R<sub>1</sub> = (V<sub>in</sub> − V<sub>out</sub>) ÷ I<sub>1</sub></li>
+    <li><b>Power ratings:</b> P = V²/R for each, then apply the 2× rule</li>
+  </ol>
+  <div class="example">
+    <h4>Example 3, page 57: 10 V supply, 3 V load at 9.1 mA</h4>
+    <ol>
+      <li>I<sub>bleed</sub> = 0.10 × 9.1 mA = <b>0.91 mA</b></li>
+      <li>R<sub>2</sub> = 3 V ÷ 0.91 mA = 3297 Ω, so use the standard <b>3.3 kΩ</b></li>
+      <li>I<sub>1</sub> = 0.91 + 9.1 = <b>10.0 mA</b></li>
+      <li>R<sub>1</sub> = (10 − 3) V ÷ 10 mA = <b>700 Ω</b></li>
+      <li>P<sub>R1</sub> = 7² ÷ 700 = <b>70 mW</b>, P<sub>R2</sub> = 3² ÷ 3300 ≈ <b>2.7 mW</b>, so ¼ W parts are plenty</li>
+    </ol>
+    <p style="margin-top:8px">After you swap in a standard value, recompute the bleeder current with the real resistor (3 V ÷ 3300 Ω = 0.909 mA here) so your numbers stay honest. Page 58 also notes that if a calculation lands on 500 Ω, a standard 510 Ω (5 percent) resistor is fine.</p>
+  </div>
+
+  <h3 class="sub">Try it: loaded divider simulator</h3>
+  <p class="prose" style="margin:0">Drag the sliders or tap a preset. Watch how far V<sub>out</sub> sags when the load is connected, and how the 10 percent design holds up compared with the naive one.</p>
+  <div class="sim" id="sim">
+    <div>
+      <div class="presets">
+        <button data-p="book">10% rule design (book)</button>
+        <button data-p="naive">Naive 7k / 3k</button>
+        <button data-p="stiff">Stiffer: 100% bleeder</button>
+        <button data-p="change">Book design, load halves</button>
+      </div>
+      <div class="ctrl"><label for="sVin"><span>Supply V<sub>in</sub></span> <output id="oVin"></output></label><input type="range" id="sVin" min="1" max="30" step="0.5"></div>
+      <div class="ctrl"><label for="sR1"><span>Top resistor R<sub>1</sub></span> <output id="oR1"></output></label><input type="range" id="sR1" min="1" max="6" step="0.01"></div>
+      <div class="ctrl"><label for="sR2"><span>Bottom resistor R<sub>2</sub> (bleeder)</span> <output id="oR2"></output></label><input type="range" id="sR2" min="1" max="6" step="0.01"></div>
+      <div class="ctrl"><label for="sRL"><span>Load resistance R<sub>L</sub></span> <output id="oRL"></output></label><input type="range" id="sRL" min="1" max="6" step="0.01"></div>
+      <label style="font-size:14.5px;display:flex;gap:8px;align-items:center"><input type="checkbox" id="cLoad" checked> Load connected</label>
+      <figure class="schem" style="margin-top:12px">
+        <svg viewBox="-16 0 396 230" role="img" aria-label="Voltage divider with a load across the bottom resistor">
+          <g class="w">
+            <path d="M40 30 V108 M40 126 V205 M40 30 H150 V40 M150 100 V130 M150 190 V205 H40"/>
+            <use href="#bat" x="40" y="112"/>
+            <use href="#rv" x="150" y="40"/>
+            <use href="#rv" x="150" y="130"/>
+          </g>
+          <g class="w" id="loadBranch">
+            <path d="M150 115 H290 V130 M290 190 V205 H150"/>
+            <use href="#rv" x="290" y="130"/>
+          </g>
+          <circle class="dot" cx="150" cy="115" r="3.2"/><circle class="dot" cx="150" cy="205" r="3.2"/>
+          <text x="21" y="120" text-anchor="end" id="tVin">10 V</text>
+          <text x="164" y="66">R1</text><text x="164" y="82" id="tR1">700 Ω</text>
+          <text x="164" y="156">R2</text><text x="164" y="172" id="tR2">3.3 kΩ</text>
+          <text x="304" y="156" id="tRLn">RL</text><text x="304" y="172" id="tRL">330 Ω</text>
+          <text class="v" x="190" y="106" id="tVout">Vout</text>
+        </svg>
+      </figure>
+    </div>
+    <div>
+      <div class="readout">
+        <div class="ro hero-ro"><small>V<sub>out</sub> with the load as shown</small><b id="rVout"></b><div class="meter"><i id="mVout"></i></div></div>
+        <div class="ro"><small>V<sub>out</sub> with no load</small><b id="rVu"></b></div>
+        <div class="ro"><small>Drop compared with no load</small><b id="rSag"></b></div>
+        <div class="ro"><small>Load current I<sub>L</sub></small><b id="rIL"></b></div>
+        <div class="ro"><small>Bleeder current I<sub>R2</sub></small><b id="rI2"></b></div>
+        <div class="ro"><small>Bleeder as % of load</small><b id="rPct"></b></div>
+        <div class="ro"><small>Current in R<sub>1</sub></small><b id="rI1"></b></div>
+        <div class="ro"><small>Power in R<sub>1</sub> / R<sub>2</sub></small><b id="rP12"></b></div>
+        <div class="ro"><small>Share of supply power reaching the load</small><b id="rEff"></b></div>
+      </div>
+      <p class="verdict" id="verdict"></p>
+    </div>
+  </div>
+</section>
+
+<!-- NETWORKS -->
+<section class="panel" id="networks">
+  <p class="sec-ref">§2.12.4, Figures 2.47 and 2.48, pages 58 to 60</p>
+  <h2>Reducing a complex resistor network</h2>
+  <div class="prose">
+    <p>Most real circuits mix series and parallel. The method is to find a pair you can clearly identify as series or parallel, replace it with one equivalent resistor, redraw, and repeat until a single resistor is left. Then you “unfold” the circuit in reverse to find every individual voltage and current. It feels long at first, but every single step is just one of the two formulas you already know.</p>
+    <p>The hardest part is spotting what’s in series and what’s in parallel. Two resistors are <b>in series</b> only if the same current must flow through both, meaning nothing else connects at the node between them. Two resistors are <b>in parallel</b> if both of their ends land on the same two nodes. Labeling the nodes (a, b, c, d like the book does) makes this much easier to see.</p>
+  </div>
+  <ol class="steps">
+    <li>Label every node. Find the innermost group that is purely series or purely parallel.</li>
+    <li>Replace it with R<sub>eq</sub> and redraw. Repeat until one resistor remains.</li>
+    <li>Total current: I<sub>total</sub> = V<sub>source</sub> ÷ R<sub>eq(final)</sub>.</li>
+    <li>Work backwards: in a series chain, the current is the same, so V = I × R for each part. In a parallel group, the voltage is the same, so I = V ÷ R for each branch.</li>
+    <li>Check with KCL (currents at a junction add up) and KVL (drops around a loop add up to the source).</li>
+  </ol>
+  <div class="two">
+    <figure class="schem">
+      <svg viewBox="-24 0 424 210" role="img" aria-label="Example 1 network: 5 kilohm in series with 10 kilohm and 8 kilohm in parallel, on 250 volts">
+        <g class="w">
+          <path d="M40 30 V96 M40 114 V180 M40 30 H70 M130 30 H310 M200 30 V70 M200 130 V180 M310 30 V70 M310 130 V180 M40 180 H310"/>
+          <use href="#bat" x="40" y="100"/>
+          <use href="#rh" x="70" y="30"/>
+          <use href="#rv" x="200" y="70"/>
+          <use href="#rv" x="310" y="70"/>
+        </g>
+        <circle class="dot" cx="200" cy="30" r="3.2"/><circle class="dot" cx="200" cy="180" r="3.2"/>
+        <text x="21" y="108" text-anchor="end">250 V</text>
+        <text x="74" y="18">R1 5.0 kΩ</text>
+        <text x="212" y="96">R2</text><text x="212" y="112">10 kΩ</text>
+        <text x="322" y="96">R3</text><text x="322" y="112">8.0 kΩ</text>
+        <text x="40" y="22" font-size="11">a</text><text x="196" y="22" font-size="11">b</text><text x="196" y="198" font-size="11">c</text>
+      </svg>
+      <figcaption>Figure 2.47: R2 and R3 share nodes b and c, so they’re in parallel</figcaption>
+    </figure>
+    <div class="example" style="margin-top:18px">
+      <h4>Example 1, page 59</h4>
+      <ol>
+        <li>R<sub>2</sub> || R<sub>3</sub> = (10 × 8) ÷ (10 + 8) = <b>4.44 kΩ</b></li>
+        <li>Add R<sub>1</sub> in series: 5.0 + 4.44 = <b>9.44 kΩ</b></li>
+        <li>I<sub>total</sub> = 250 V ÷ 9.44 kΩ = <b>26.5 mA</b> (this is I<sub>1</sub>)</li>
+        <li>V across the pair = 26.5 mA × 4.44 kΩ = <b>118 V</b> = V<sub>2</sub> = V<sub>3</sub></li>
+        <li>I<sub>2</sub> = 118 ÷ 10k = <b>11.8 mA</b>, I<sub>3</sub> = 118 ÷ 8k = <b>14.7 mA</b></li>
+        <li>V<sub>1</sub> = 250 − 118 = <b>132 V</b> (KVL)</li>
+      </ol>
+      <p style="margin-top:8px">The book gets 26.6 mA, 117 V and 133 V because it rounded 4.44 to 4.4 early. Lesson: carry an extra digit until the final answer.</p>
+    </div>
+  </div>
+  <div class="two">
+    <figure class="schem">
+      <svg viewBox="-16 0 436 210" role="img" aria-label="Example 2 network: 1 kilohm, then 6.8 kilohm in parallel with a 3.3 kilohm plus 10 kilohm branch, on 12 volts">
+        <g class="w">
+          <path d="M40 30 V96 M40 114 V180 M40 30 H70 M130 30 H240 M300 30 H340 V70 M200 30 V70 M200 130 V180 M340 130 V180 M40 180 H340"/>
+          <use href="#bat" x="40" y="100"/>
+          <use href="#rh" x="70" y="30"/>
+          <use href="#rh" x="240" y="30"/>
+          <use href="#rv" x="200" y="70"/>
+          <use href="#rv" x="340" y="70"/>
+        </g>
+        <circle class="dot" cx="200" cy="30" r="3.2"/><circle class="dot" cx="200" cy="180" r="3.2"/>
+        <text x="21" y="108" text-anchor="end">12 V</text>
+        <text x="74" y="18">R1 1.0 kΩ</text>
+        <text x="244" y="18">R3 3.3 kΩ</text>
+        <text x="212" y="96">R2</text><text x="212" y="112">6.8 kΩ</text>
+        <text x="352" y="96">R4</text><text x="352" y="112">10 kΩ</text>
+        <text x="40" y="22" font-size="11">a</text><text x="196" y="22" font-size="11">b</text><text x="346" y="22" font-size="11">c</text><text x="196" y="198" font-size="11">d</text>
+      </svg>
+      <figcaption>Figure 2.48: R3 and R4 are in series (nothing else touches node c); that pair is in parallel with R2</figcaption>
+    </figure>
+    <div class="example" style="margin-top:18px">
+      <h4>Example 2, page 60, with corrected numbers</h4>
+      <ol>
+        <li>R<sub>3</sub> + R<sub>4</sub> = 3.3 + 10 = <b>13.3 kΩ</b></li>
+        <li>R<sub>2</sub> || 13.3k = (6.8 × 13.3) ÷ (6.8 + 13.3) = 90.44 ÷ 20.1 = <b>4.50 kΩ</b></li>
+        <li>Add R<sub>1</sub>: 1.0 + 4.50 = <b>5.50 kΩ</b></li>
+        <li>I<sub>total</sub> = 12 V ÷ 5.50 kΩ = <b>2.18 mA</b></li>
+        <li>V<sub>b</sub> = 2.18 mA × 4.50 kΩ = <b>9.82 V</b>; V<sub>R1</sub> = 12 − 9.82 = <b>2.18 V</b></li>
+        <li>I<sub>2</sub> = 9.82 ÷ 6.8k = <b>1.44 mA</b>; I<sub>3</sub> = I<sub>4</sub> = 9.82 ÷ 13.3k = <b>0.738 mA</b> (KCL: 1.44 + 0.74 = 2.18 ✓)</li>
+        <li>V<sub>R3</sub> = 0.738 × 3.3 = <b>2.44 V</b>; V<sub>R4</sub> = 0.738 × 10 = <b>7.38 V</b> (KVL: 2.44 + 7.38 = 9.82 ✓)</li>
+      </ol>
+      <p style="margin-top:8px">The book writes 4.3 kΩ in step 2, which is an arithmetic slip, and every number after it inherits the error. The method in the book is right; only the values are off.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MULTI -->
+<section class="panel" id="multi">
+  <p class="sec-ref">§2.12.5, Figures 2.49 and 2.50, pages 61 to 62</p>
+  <h2>Multiple voltage dividers</h2>
+  <div class="prose">
+    <p>A multiple divider is one long series string of resistors with “taps” at the voltages you need, each feeding its own load. You design it from the bottom (ground) upward. The bleeder resistor at the bottom carries 10 percent of the <em>total</em> load current, not 10 percent of any single load. Every resistor above it carries the bleeder current plus the current of every load tapped off below it, because that current has to come down through the string to reach those taps. Each resistor’s value is the voltage between its two taps divided by its current.</p>
+    <p>In Example 1 the loads are 75 V at 30 mA, 50 V at 10 mA and 25 V at 10 mA on a 100 V supply. The total load current is 50 mA, so the bleeder is 5 mA. Climbing up the string, each resistor picks up the load just below it, and every resistor in this design happens to drop 25 V:</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Resistor</th><th>Between</th><th class="num">Current</th><th class="num">R = 25 V ÷ I</th><th class="num">Power (I × V)</th><th>Book’s rating</th></tr></thead>
+    <tbody>
+      <tr><td>R4 (bleeder)</td><td>0 V and 25 V</td><td class="num">5 mA</td><td class="num">5000 Ω</td><td class="num">0.125 W</td><td>½ W</td></tr>
+      <tr><td>R3</td><td>25 V and 50 V</td><td class="num">5 + 10 = 15 mA</td><td class="num">1667 Ω</td><td class="num">0.375 W</td><td>1 W</td></tr>
+      <tr><td>R2</td><td>50 V and 75 V</td><td class="num">15 + 10 = 25 mA</td><td class="num">1000 Ω</td><td class="num">0.625 W</td><td>1 W</td></tr>
+      <tr><td>R1</td><td>75 V and 100 V</td><td class="num">25 + 30 = 55 mA</td><td class="num">455 Ω</td><td class="num">1.375 W</td><td>2 W</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose">
+    <p>The supply delivers 100 V × 55 mA = 5.5 W in total. The loads use 2.25 + 0.5 + 0.25 = 3.0 W, and the divider resistors burn the other 2.5 W as heat. (Strictly by the 2× rule, R1 would want 3 W and R2 2 W, so the book’s choices are a little optimistic.)</p>
+    <p><b>Positive and negative outputs (Example 2).</b> If you connect ground to a tap partway up the string instead of at the bottom, the taps below it become negative. In Figure 2.50 the string spans 100 V with ground placed so the outputs are +50 V, +25 V and −25 V. The easiest way to find the current in R3 (the resistor just above ground) is KCL at the ground node: current arriving equals current leaving. Arriving: I<sub>R3</sub> coming down plus the 60 mA returning from the two positive loads. Leaving: the 16 mA bleeder going down through R4 plus the 100 mA heading through the −25 V load. So I<sub>R3</sub> + 60 = 16 + 100, giving I<sub>R3</sub> = 56 mA. The book writes the same thing as one signed equation.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Resistor</th><th class="num">Current</th><th class="num">R = 25 V ÷ I</th><th class="num">Power</th></tr></thead>
+    <tbody>
+      <tr><td>R4 (bleeder, 0 V to −25 V)</td><td class="num">10% × 160 mA = 16 mA</td><td class="num">1562 Ω</td><td class="num">0.4 W</td></tr>
+      <tr><td>R3 (+25 V to 0 V)</td><td class="num">56 mA (KCL at ground)</td><td class="num">446 Ω</td><td class="num">1.4 W</td></tr>
+      <tr><td>R2 (+50 V to +25 V)</td><td class="num">56 + 10 = 66 mA</td><td class="num">379 Ω</td><td class="num">1.65 W</td></tr>
+      <tr><td>R1 (+75 V to +50 V)</td><td class="num">66 + 50 = 116 mA</td><td class="num">216 Ω</td><td class="num">2.9 W</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout warn">
+    <b class="h">Why dividers aren’t the end of the story</b>
+    <p>In Example 2 the supply delivers about 11.6 W, the loads use 5.25 W, and the resistors waste roughly 6.35 W, more than half. Dividers are also unregulated: if a load changes its current or the supply voltage wanders, every output shifts (try the “load halves” preset in the simulator above). For steady voltages at real currents, the book points ahead to voltage regulator ICs. Section 2.13 starts that story with the ideal voltage source, which holds its voltage fixed no matter how much current the load demands.</p>
+  </div>
+</section>
+
+<!-- FIXES -->
+<section class="panel" id="fixes">
+  <p class="sec-ref">Errata worth knowing</p>
+  <h2>Spots where the book trips</h2>
+  <p class="prose">If a step in these pages ever looked wrong to you, you may have been right. These are the slips I found while checking every calculation.</p>
+  <div class="fix"><h4>Page 53, parallel derivation</h4><p>The book says “we call the term in brackets R<sub>total</sub>.” The bracket (1/R<sub>1</sub> + 1/R<sub>2</sub> + …) is actually 1/R<sub>total</sub>. Also, the last term should be 1/R<sub>N</sub>, not 1/R<sub>4</sub>.</p></div>
+  <div class="fix"><h4>Page 54, total power</h4><p>P<sub>tot</sub> = (0.0016 A)(12 V) has a dropped zero: it should be 0.016 A (16 mA). The result, 0.192 W, is correct.</p></div>
+  <div class="fix"><h4>Page 54, units and rounding</h4><p>0.00175 is in Ω<sup>−1</sup> (siemens), not Ω, since it’s one over a resistance. And 1 ÷ 0.00175 = 571.4 Ω, which the book rounds to 572.</p></div>
+  <div class="fix"><h4>Page 60, Example 2</h4><p>6.8 kΩ || 13.3 kΩ is 4.50 kΩ, not 4.3 kΩ, so every later value is a bit off. Corrected values: 5.50 kΩ total, 2.18 mA, 9.82 V at node b, 1.44 mA and 0.738 mA in the branches.</p></div>
+</section>
+
+<!-- FORMULAS -->
+<section class="panel" id="formulas">
+  <p class="sec-ref">Everything from pages 51 to 62 in one place</p>
+  <h2>Formula sheet</h2>
+  <div class="sheet">
+    <div class="fcard"><h3>Prefixes</h3><div class="f">
+      M = 10⁶ &nbsp; k = 10³<br>m = 10⁻³ &nbsp; µ = 10⁻⁶ &nbsp; n = 10⁻⁹ &nbsp; p = 10⁻¹²<br>
+      kΩ × mA = V<br>V ÷ kΩ = mA<br>V × mA = mW</div></div>
+    <div class="fcard"><h3>Ohm’s law</h3><div class="f">
+      V = I × R<br>I = V ÷ R<br>R = V ÷ I<br><span class="c">Know two, find the third.</span></div></div>
+    <div class="fcard"><h3>Power</h3><div class="f">
+      P = I × V = I² × R = V² ÷ R<br>V<sub>max</sub> = √(P × R)<br>I<sub>max</sub> = √(P ÷ R)<br>Rating ≥ 2 × P<sub>expected</sub><br><span class="c">Common ratings: ⅛, ¼, ½, 1 W; power parts 2 W and up.</span></div></div>
+    <div class="fcard"><h3>Kirchhoff</h3><div class="f">
+      KCL: ΣI<sub>in</sub> = ΣI<sub>out</sub> at any node<br>KVL: ΣV<sub>drops</sub> = V<sub>source</sub> around any loop</div></div>
+    <div class="fcard"><h3>Series</h3><div class="f">
+      R<sub>total</sub> = R₁ + R₂ + R₃ + …<br>Same I through all<br>V<sub>total</sub> = V₁ + V₂ + …<br>V<sub>n</sub> = V<sub>in</sub> × R<sub>n</sub> ÷ R<sub>total</sub><br><span class="c">Largest resistor gets most voltage and most power.</span></div></div>
+    <div class="fcard"><h3>Parallel</h3><div class="f">
+      1/R<sub>total</sub> = 1/R₁ + 1/R₂ + …<br>Two: R₁R₂ ÷ (R₁ + R₂)<br>n equal: R ÷ n<br>Same V across all; I<sub>total</sub> = I₁ + I₂ + …<br><span class="c">Smallest resistor gets most current and most power.</span></div></div>
+    <div class="fcard"><h3>Voltage divider (series)</h3><div class="f">
+      V<sub>out</sub> = V<sub>in</sub> × R₂ ÷ (R₁ + R₂)<br>V₁ = V<sub>in</sub> × R₁ ÷ (R₁ + R₂)<br>R₁ = R₂ × (V<sub>in</sub> − V<sub>out</sub>) ÷ V<sub>out</sub><br><span class="c">Same resistor on top. Only valid with no load.</span></div></div>
+    <div class="fcard"><h3>Current divider (parallel)</h3><div class="f">
+      I₁ = I<sub>in</sub> × R₂ ÷ (R₁ + R₂)<br>I₂ = I<sub>in</sub> × R₁ ÷ (R₁ + R₂)<br><span class="c">Other resistor on top.</span></div></div>
+    <div class="fcard"><h3>10 percent rule (loaded divider)</h3><div class="f">
+      I<sub>bleed</sub> = 0.1 × I<sub>load</sub><br>R₂ = V<sub>out</sub> ÷ I<sub>bleed</sub><br>I₁ = I<sub>bleed</sub> + I<sub>load</sub><br>R₁ = (V<sub>in</sub> − V<sub>out</sub>) ÷ I₁</div></div>
+    <div class="fcard"><h3>Multiple dividers</h3><div class="f">
+      I<sub>bleed</sub> = 0.1 × (sum of all loads)<br>I<sub>R</sub> = I<sub>bleed</sub> + loads tapped below<br>R = ΔV between taps ÷ I<sub>R</sub><br><span class="c">Work from ground upward. With split supplies, use KCL at the ground node.</span></div></div>
+    <div class="fcard wide"><h3>Network reduction</h3><div class="f">
+      <span class="c">Label nodes → combine an obvious series or parallel pair → redraw → repeat to one R<sub>eq</sub> → I<sub>total</sub> = V ÷ R<sub>eq</sub> → unfold: series parts share I (use V = IR), parallel parts share V (use I = V/R) → check with KCL and KVL.</span></div></div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section class="panel" id="tools">
+  <p class="sec-ref">For checking your homework</p>
+  <h2>Bench tools</h2>
+  <p class="prose">Both tools accept prefixes, so you can type 4.7k, 20m, 2M or 3u (for micro). Remember that a capital M means mega and a lowercase m means milli.</p>
+
+  <div class="tool" id="ohmTool">
+    <h3>Ohm’s law and power solver</h3>
+    <p class="help">Fill in any two boxes and press Solve. It shows which formulas it used and suggests a power rating by the 2× rule.</p>
+    <div class="grid4">
+      <div class="field"><label for="oV">Voltage <span>V</span></label><input type="text" id="oV" placeholder="e.g. 12" inputmode="decimal" autocomplete="off"></div>
+      <div class="field"><label for="oI">Current <span>A</span></label><input type="text" id="oI" placeholder="e.g. 20m" autocomplete="off"></div>
+      <div class="field"><label for="oR">Resistance <span>Ω</span></label><input type="text" id="oR" placeholder="e.g. 4.7k" autocomplete="off"></div>
+      <div class="field"><label for="oP">Power <span>W</span></label><input type="text" id="oP" placeholder="e.g. 250m" autocomplete="off"></div>
+    </div>
+    <div class="row"><button class="primary" id="oSolve">Solve</button><button id="oClear">Clear</button></div>
+    <div class="out" id="oOut"></div>
+  </div>
+
+  <div class="tool" id="netTool">
+    <h3>Series and parallel calculator</h3>
+    <p class="help">List resistors separated by commas. Add a voltage to see each resistor’s current, voltage, power and suggested rating.</p>
+    <div class="grid4" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr)">
+      <div class="field"><label for="nList">Resistors</label><input type="text" id="nList" value="1k, 2k, 4k" autocomplete="off"></div>
+      <div class="field"><label for="nV">Applied voltage <span>(optional)</span></label><input type="text" id="nV" value="24" autocomplete="off"></div>
+    </div>
+    <div class="row"><button class="on" data-mode="parallel" id="nPar">Parallel</button><button data-mode="series" id="nSer">Series</button></div>
+    <div class="out" id="nOut"></div>
+  </div>
+</section>
+
+<!-- PRACTICE -->
+<section class="panel" id="practice">
+  <p class="sec-ref">Unlimited problems with worked solutions</p>
+  <h2>Practice</h2>
+  <p class="prose">Pick a topic and work each problem on paper first. Type answers as plain numbers in the unit shown, or with a prefix (like 4.7k). Answers within 2 percent count, so normal rounding is fine. If you’re stuck, open the solution, read it, then press New problem and try another of the same kind.</p>
+  <div class="chips" id="chips">
+    <button data-t="all" class="on">Mixed</button>
+    <button data-t="prefix">Prefixes</button>
+    <button data-t="ohm">Ohm’s law</button>
+    <button data-t="power">Power and ratings</button>
+    <button data-t="parallel">Parallel</button>
+    <button data-t="series">Series</button>
+    <button data-t="divider">Dividers</button>
+    <button data-t="network">Networks</button>
+  </div>
+  <div class="prob" id="prob"></div>
+  <p class="score">This session: <b id="sc">0</b> correct out of <b id="sa">0</b> attempted.</p>
+
+  <h3 class="sub">Concept checks</h3>
+  <p class="prose" style="margin:0 0 6px">No math needed, just understanding. Tap an answer to see why.</p>
+  <div id="mcs"></div>
+</section>
+
+<!-- RECAP -->
+<section class="panel" id="recap">
+  <p class="sec-ref">Summary of the reading</p>
+  <h2>The whole section in a few paragraphs</h2>
+  <div class="prose">
+    <p>Section 2.12 is about what resistors do in circuits and how to calculate it. It opens with unit prefixes, since resistances are usually large (kΩ, MΩ) and currents, voltages and powers usually small (mA, µA, mW). Ohm’s law (V = IR) and the power law (P = IV, which also becomes I²R and V²/R) let you find any quantity from two others. Every resistor has a power rating, and you should pick one at least twice the power you expect. At a fixed voltage, smaller resistors dissipate more power, which is why they burn up.</p>
+    <p>Parallel resistors share the same voltage and split the current; their total is smaller than the smallest one (1/R<sub>total</sub> = Σ1/R, or product over sum for two). Series resistors share the same current and split the voltage; their total is the sum. Both rules come from combining Ohm’s law with Kirchhoff’s laws, and they lead to the current divider and voltage divider equations. A voltage divider only works as calculated when nothing draws current from it. Once a load is attached it acts like a resistor in parallel with R<sub>2</sub> and drags the output down, so the 10 percent rule sizes the bleeder resistor for 10 percent of the load current and sizes R<sub>1</sub> for the bleeder plus the load.</p>
+    <p>Complex networks get solved by repeatedly collapsing series and parallel groups into single equivalents, finding the total current, then working back out. Multiple-output dividers stack the same idea, working from ground upward with a bleeder of 10 percent of the total load, and moving the ground point gives positive and negative outputs from one supply. The section ends by noting that dividers are wasteful and unregulated, setting up voltage sources and regulators next.</p>
+  </div>
+</section>
+
+</main>
+<footer>Study guide for Practical Electronics for Inventors (4th ed.), pages 51 to 62.</footer>
+
+<script>
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const PFX=[[1e9,'G'],[1e6,'M'],[1e3,'k'],[1,''],[1e-3,'m'],[1e-6,'µ'],[1e-9,'n'],[1e-12,'p']];
+function pfx(v){const a=Math.abs(v);if(!a)return[1,''];for(const[m,s]of PFX){if(a>=m*0.9995)return[m,s];}return[1e-12,'p'];}
+function sig(x,n=3){return parseFloat(Number(x).toPrecision(n)).toString();}
+function eng(v,u,n=3){if(!isFinite(v))return '—';const[m,s]=pfx(v);return sig(v/m,n)+' '+s+u;}
+function plain(v){if(v>=1)return v.toLocaleString('en-US',{maximumFractionDigits:6});const d=Math.min(14,Math.ceil(-Math.log10(v))+2);return v.toFixed(d).replace(/0+$/,'').replace(/\.$/,'');}
+const PMAP={G:1e9,M:1e6,k:1e3,K:1e3,'':1,m:1e-3,u:1e-6,'µ':1e-6,'μ':1e-6,n:1e-9,p:1e-12};
+function parseEng(str){
+  if(str==null)return NaN;
+  let s=String(str).trim().replace(/,/g,'').replace(/\s+/g,'');
+  if(!s)return NaN;
+  s=s.replace(/(Ω|[oO]hms?|[vV]|[aA]|[wW])$/,'');
+  const m=s.match(/^([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)([GMkKmuµμnp]?)$/);
+  if(!m)return NaN;
+  return parseFloat(m[1])*PMAP[m[2]];
+}
+const RATINGS=[[0.125,'⅛ W'],[0.25,'¼ W'],[0.5,'½ W'],[1,'1 W'],[2,'2 W'],[3,'3 W'],[5,'5 W'],[10,'10 W'],[25,'25 W'],[50,'50 W'],[100,'100 W']];
+function ratingFor(P){const r=RATINGS.find(x=>x[0]>=2*P);return r?r[1]:'over 100 W (rethink the design)';}
+
+/* ---------- PCB background ---------- */
+(function(){
+  const svg=$('#pcb'),NS='http://www.w3.org/2000/svg',W=1600,H=1000,G=16;
+  let seed=2124;const rand=()=>{seed=(seed*1664525+1013904223)%4294967296;return seed/4294967296;};
+  const ri=(a,b)=>a+Math.floor(rand()*(b-a+1));
+  const D=[[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]];
+  const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e;};
+  const gB=el('g',{class:'tb'}),gT=el('g',{class:'tt'}),gS=el('g',{}),gP=el('g',{}),gSig=el('g',{});
+  const nrm=d=>{const[x,y]=D[d],l=Math.hypot(x,y);return[-y/l,x/l];};
+  const topPaths=[];
+  function pad(x,y,r){el('circle',{cx:x,cy:y,r:r,class:'pad'},gP);el('circle',{cx:x,cy:y,r:r*0.38,class:'hole'},gP);}
+  function bus(layer){
+    const n=ri(1,6),sp=8;let x=ri(0,W/G)*G,y=ri(0,H/G)*G,d=ri(0,3)*2;
+    const pts=[[x,y]],dirs=[];const segs=ri(2,5);
+    for(let s=0;s<segs;s++){
+      const len=ri(4,20);x+=D[d][0]*len*G;y+=D[d][1]*len*G;pts.push([x,y]);dirs.push(d);
+      if(s<segs-1){const t=rand()<.5?1:-1,dd=(d+t+8)%8,jl=ri(1,4);x+=D[dd][0]*jl*G;y+=D[dd][1]*jl*G;pts.push([x,y]);dirs.push(dd);d=rand()<.5?d:(d+2*t+8)%8;}
+    }
+    for(let i=0;i<n;i++){
+      const o=(i-(n-1)/2)*sp;
+      const off=pts.map((p,j)=>{const a=nrm(dirs[Math.max(0,j-1)]),b=nrm(dirs[Math.min(dirs.length-1,j)]);let mx=a[0]+b[0],my=a[1]+b[1];const ml=Math.hypot(mx,my)||1;mx/=ml;my/=ml;const k=o/(mx*a[0]+my*a[1]);return[p[0]+mx*k,p[1]+my*k];});
+      const dstr='M'+off.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L');
+      const path=el('path',{d:dstr},layer==='top'?gT:gB);
+      if(layer==='top'){topPaths.push(dstr);const e=off[off.length-1],s0=off[0];pad(s0[0],s0[1],3.4);pad(e[0],e[1],3.4);}
+      else if(rand()<.5){const e=off[off.length-1];pad(e[0],e[1],2.8);}
+    }
+  }
+  for(let i=0;i<20;i++)bus('bottom');
+  for(let i=0;i<24;i++)bus('top');
+  // silkscreen footprints
+  let rn=1,un=1,cn=1;
+  for(let i=0;i<14;i++){
+    const x=ri(2,W/G-4)*G,y=ri(2,H/G-4)*G,v=rand()<.5;
+    if(v){el('rect',{x:x-6,y:y-14,width:12,height:28,rx:2,class:'silk'},gS);pad(x,y-8,3);pad(x,y+8,3);}
+    else{el('rect',{x:x-14,y:y-6,width:28,height:12,rx:2,class:'silk'},gS);pad(x-8,y,3);pad(x+8,y,3);}
+    const t=el('text',{x:x+(v?10:-14),y:y+(v?4:-10)},gS);t.textContent=(rand()<.6?'R'+(rn++):'C'+(cn++));
+  }
+  for(let i=0;i<5;i++){
+    const x=ri(4,W/G-10)*G,y=ri(4,H/G-8)*G,np=ri(4,8),w=np*8+8,h=36;
+    el('rect',{x:x,y:y,width:w,height:h,rx:2,class:'silk'},gS);
+    el('circle',{cx:x+7,cy:y+7,r:2.5,class:'silk'},gS);
+    for(let k=0;k<np;k++){el('rect',{x:x+6+k*8,y:y-8,width:4,height:7,class:'pad'},gP);el('rect',{x:x+6+k*8,y:y+h+1,width:4,height:7,class:'pad'},gP);}
+    const t=el('text',{x:x,y:y+h+22},gS);t.textContent='U'+(un++);
+  }
+  for(let i=0;i<40;i++)pad(ri(0,W/G)*G,ri(0,H/G)*G,3.2);
+  // signal pulses live in their own small overlay, so animating them never repaints the board
+  const sigSvg=$('#pcbSig');
+  for(let i=0;i<5&&topPaths.length;i++){
+    const d=topPaths[Math.floor(rand()*topPaths.length)];
+    const p=el('path',{d:d,class:'sig',pathLength:100},sigSvg);
+    p.style.animationDuration=(22+rand()*14).toFixed(1)+'s';p.style.animationDelay=(-rand()*30).toFixed(1)+'s';
+  }
+  gSig.remove();
+  // bake the static board into one cached image using the current theme colors
+  const img=$('#pcbImg'),ser=new XMLSerializer();
+  function bake(){
+    const cs=getComputedStyle(document.documentElement),c=n=>cs.getPropertyValue(n).trim();
+    const css=`.tb path{fill:none;stroke:${c('--trace-bot')};stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}.tt path{fill:none;stroke:${c('--trace-top')};stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}.pad{fill:${c('--pad')};opacity:.55}.hole{fill:${c('--hole')}}.silk{fill:none;stroke:${c('--silk')};stroke-width:1;opacity:.7}text{fill:${c('--silk')};font:600 9px sans-serif;opacity:.8}`;
+    const body=[...svg.childNodes].map(n=>ser.serializeToString(n)).join('');
+    img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="${NS}" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><style>${css}</style>${body}</svg>`);
+  }
+  bake();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change',bake);
+  new MutationObserver(bake).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  // pause the pulses while the page is scrolling, resume right after
+  let stopT;
+  addEventListener('scroll',()=>{sigSvg.classList.add('paused');clearTimeout(stopT);stopT=setTimeout(()=>sigSvg.classList.remove('paused'),180);},{passive:true});
+})();
+
+/* ---------- nav highlight ---------- */
+(function(){
+  const links=[...document.querySelectorAll('#toc a')];
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.remove('on'));const a=map.get(e.target.id);if(a){a.classList.add('on');const nav=a.parentElement,nr=nav.getBoundingClientRect(),ar=a.getBoundingClientRect();if(ar.left<nr.left||ar.right>nr.right)nav.scrollBy({left:ar.left-nr.left-16,behavior:'smooth'});}}});},{rootMargin:'-40% 0px -55% 0px'});
+  map.forEach((a,id)=>{const s=document.getElementById(id);if(s)io.observe(s);});
+})();
+
+/* ---------- divider simulator ---------- */
+(function(){
+  const st={Vin:10,R1:700,R2:3300,RL:330,load:true,preset:'book'};
+  const s={Vin:$('#sVin'),R1:$('#sR1'),R2:$('#sR2'),RL:$('#sRL')};
+  function sync(){s.Vin.value=st.Vin;s.R1.value=Math.log10(st.R1);s.R2.value=Math.log10(st.R2);s.RL.value=Math.log10(st.RL);$('#cLoad').checked=st.load;upd();}
+  s.Vin.oninput=()=>{st.Vin=+s.Vin.value;upd();};
+  ['R1','R2','RL'].forEach(k=>s[k].oninput=()=>{st[k]=+Math.pow(10,+s[k].value).toPrecision(3);st.preset=null;upd();});
+  s.Vin.addEventListener('input',()=>{st.preset=null;});
+  $('#cLoad').onchange=e=>{st.load=e.target.checked;upd();};
+  const presets={book:{Vin:10,R1:700,R2:3300,RL:330,load:true},naive:{Vin:10,R1:7000,R2:3000,RL:330,load:true},stiff:{Vin:10,R1:385,R2:330,RL:330,load:true},change:{Vin:10,R1:700,R2:3300,RL:660,load:true}};
+  document.querySelectorAll('#sim .presets button').forEach(b=>b.onclick=()=>{Object.assign(st,presets[b.dataset.p]);st.preset=b.dataset.p;sync();});
+  function upd(){
+    const {Vin,R1,R2,RL,load}=st;
+    const R2e=load?R2*RL/(R2+RL):R2;
+    const Vu=Vin*R2/(R1+R2),Vl=Vin*R2e/(R1+R2e);
+    const I1=Vin/(R1+R2e),I2=Vl/R2,IL=load?Vl/RL:0;
+    const P1=I1*I1*R1,P2=Vl*Vl/R2,PL=load?Vl*Vl/RL:0,Pt=Vin*I1;
+    const sag=(Vu-Vl)/Vu*100;
+    $('#oVin').textContent=eng(Vin,'V');$('#oR1').textContent=eng(R1,'Ω');$('#oR2').textContent=eng(R2,'Ω');$('#oRL').textContent=eng(RL,'Ω');
+    $('#tVin').textContent=eng(Vin,'V');$('#tR1').textContent=eng(R1,'Ω');$('#tR2').textContent=eng(R2,'Ω');$('#tRL').textContent=eng(RL,'Ω');
+    $('#tVout').textContent='Vout = '+eng(Vl,'V');
+    $('#loadBranch').classList.toggle('dim',!load);
+    $('#rVout').textContent=eng(Vl,'V');$('#mVout').style.width=(Vl/Vin*100).toFixed(1)+'%';
+    $('#rVu').textContent=eng(Vu,'V');
+    $('#rSag').textContent=load?sag.toFixed(1)+' %':'no load';
+    $('#rIL').textContent=load?eng(IL,'A'):'0 A';
+    $('#rI2').textContent=eng(I2,'A');
+    $('#rPct').textContent=load?(I2/IL*100).toFixed(0)+' %':'n/a';
+    $('#rI1').textContent=eng(I1,'A');
+    $('#rP12').textContent=eng(P1,'W',2)+' / '+eng(P2,'W',2);
+    $('#rEff').textContent=load?(PL/Pt*100).toFixed(0)+' %':'0 %';
+    const pct=load?I2/IL*100:0,eff=load?PL/Pt*100:0,pr=st.preset;let v;
+    if(!load)v=`With nothing attached, V<sub>out</sub> is just the plain divider equation: ${eng(Vin,'V')} × R<sub>2</sub> ÷ (R<sub>1</sub> + R<sub>2</sub>) = ${eng(Vu,'V')}.${pr==='book'||pr==='change'?' The 10 percent design only gives 3 V while its load is plugged in.':''}`;
+    else if(pr==='book')v=`This is the 10 percent design: V<sub>out</sub> is ${eng(Vl,'V')} with the 9.1 mA load attached. Untick “Load connected” and it jumps to ${eng(Vu,'V')}, which is why the rule assumes the load stays put.`;
+    else if(pr==='naive')v=`R<sub>2</sub> || R<sub>L</sub> is only about ${eng(R2e,'Ω')}, so the bottom of the divider collapses and the device gets ${eng(Vl,'V')} instead of 3 V. This design ignored the load.`;
+    else if(pr==='stiff')v=`The bleeder now equals the load current. V<sub>out</sub> is still ${eng(Vl,'V')}, and removing the load only lifts it to ${eng(Vu,'V')}, but just ${eng(eff,'',2).trim()} % of the supply power reaches the load. Stiffness costs heat.`;
+    else if(pr==='change')v=`The load now draws about half the current the divider was designed for, so V<sub>out</sub> drifts up to ${eng(Vl,'V')}. Dividers don’t regulate.`;
+    else v=`The bleeder is ${pct.toFixed(0)} % of the load current. Removing the load would move V<sub>out</sub> from ${eng(Vl,'V')} to ${eng(Vu,'V')}. A bigger bleeder percentage makes the output less sensitive to the load but wastes more power.`;
+    $('#verdict').innerHTML=v;
+  }
+  sync();
+})();
+
+/* ---------- Ohm solver ---------- */
+(function(){
+  const ids=['V','I','R','P'],units={V:'V',I:'A',R:'Ω',P:'W'};
+  $('#oClear').onclick=()=>{ids.forEach(k=>$('#o'+k).value='');$('#oOut').innerHTML='';};
+  $('#oSolve').onclick=()=>{
+    const raw={},k=[];ids.forEach(id=>{const t=$('#o'+id).value.trim();if(t){raw[id]=parseEng(t);k.push(id);}});
+    const out=$('#oOut');
+    const bad=k.filter(id=>!isFinite(raw[id])||raw[id]<=0);
+    if(bad.length){out.innerHTML='<span class="err">Couldn’t read the '+bad.join(', ')+' box. Use a positive number with an optional prefix, like 4.7k or 20m.</span>';return;}
+    if(k.length!==2){out.innerHTML='<span class="err">Fill in exactly two boxes, then press Solve.</span>';return;}
+    let {V,I,R,P}=raw,how='';
+    const key=k.slice().sort().join('');
+    switch(key){
+      case 'IV':R=V/I;P=V*I;how='R = V ÷ I, P = I × V';break;
+      case 'RV':I=V/R;P=V*V/R;how='I = V ÷ R, P = V² ÷ R';break;
+      case 'PV':I=P/V;R=V*V/P;how='I = P ÷ V, R = V² ÷ P';break;
+      case 'IR':V=I*R;P=I*I*R;how='V = I × R, P = I² × R';break;
+      case 'IP':V=P/I;R=P/(I*I);how='V = P ÷ I, R = P ÷ I²';break;
+      case 'PR':V=Math.sqrt(P*R);I=Math.sqrt(P/R);how='V = √(P × R), I = √(P ÷ R)';break;
+    }
+    const vals={V,I,R,P};
+    ids.forEach(id=>{if(!k.includes(id))$('#o'+id).value=eng(vals[id],units[id]).replace(' ','');});
+    out.innerHTML=`<p style="margin:0 0 6px"><b>${eng(V,'V')}</b>, <b>${eng(I,'A')}</b>, <b>${eng(R,'Ω')}</b>, <b>${eng(P,'W')}</b></p><p style="margin:0 0 6px">Formulas used: <span class="mono">${how}</span></p><p style="margin:0">Suggested rating by the 2× rule (at least ${eng(2*P,'W')}): <b>${ratingFor(P)}</b></p>`;
+  };
+})();
+
+/* ---------- network calculator ---------- */
+(function(){
+  let mode='parallel';
+  const btns=[$('#nPar'),$('#nSer')];
+  btns.forEach(b=>b.onclick=()=>{mode=b.dataset.mode;btns.forEach(x=>x.classList.toggle('on',x===b));calc();});
+  $('#nList').oninput=calc;$('#nV').oninput=calc;
+  function calc(){
+    const out=$('#nOut');
+    const parts=$('#nList').value.split(/[,;]+/).map(s=>s.trim()).filter(Boolean);
+    const Rs=parts.map(parseEng);
+    if(!Rs.length){out.innerHTML='<span class="err">Type at least one resistor value.</span>';return;}
+    const badI=Rs.findIndex(r=>!isFinite(r)||r<=0);
+    if(badI>=0){out.innerHTML='<span class="err">Couldn’t read “'+parts[badI]+'”. Try something like 4.7k or 330.</span>';return;}
+    const Rt=mode==='series'?Rs.reduce((a,b)=>a+b,0):1/Rs.reduce((a,b)=>a+1/b,0);
+    const work=mode==='series'?Rs.map(r=>eng(r,'Ω')).join(' + '):'1 ÷ ('+Rs.map(r=>'1/'+eng(r,'Ω')).join(' + ')+')';
+    let html=`<p style="margin:0 0 8px">R<sub>total</sub> = <span class="mono">${work}</span> = <b>${eng(Rt,'Ω')}</b></p>`;
+    const Vs=$('#nV').value.trim(),V=parseEng(Vs);
+    if(Vs&&isFinite(V)&&V>0){
+      const It=V/Rt;
+      html+=`<p style="margin:0 0 8px">Total current = ${eng(V,'V')} ÷ ${eng(Rt,'Ω')} = <b>${eng(It,'A')}</b>, total power = <b>${eng(V*It,'W')}</b></p>`;
+      html+='<div class="tbl"><table><thead><tr><th>Resistor</th><th class="num">Voltage</th><th class="num">Current</th><th class="num">Power</th><th>2× rating</th></tr></thead><tbody>';
+      Rs.forEach((r,i)=>{const v=mode==='series'?It*r:V,c=v/r,p=v*c;html+=`<tr><td>R${i+1} = ${eng(r,'Ω')}</td><td class="num">${eng(v,'V')}</td><td class="num">${eng(c,'A')}</td><td class="num">${eng(p,'W')}</td><td>${ratingFor(p)}</td></tr>`;});
+      html+='</tbody></table></div>';
+    } else if(Vs){html+='<span class="err">Couldn’t read the voltage. Leave it blank or type something like 12.</span>';}
+    out.innerHTML=html;
+  }
+  calc();
+})();
+
+/* ---------- practice generators ---------- */
+const E12=[1,1.2,1.5,1.8,2.2,2.7,3.3,3.9,4.7,5.6,6.8,8.2];
+const rint=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const stdR=(lo,hi)=>+(pick(E12)*Math.pow(10,rint(lo,hi))).toPrecision(3);
+const kTip='<p>Shortcut: kΩ × mA = V and V ÷ kΩ = mA, so you can often skip the decimals.</p>';
+
+const GEN={
+  prefix(){
+    let v,u;
+    if(Math.random()<.4){v=+(pick(E12)*Math.pow(10,rint(3,6))).toPrecision(3);u='Ω';}
+    else{u=pick(['A','V','W']);v=+(pick(E12)*Math.pow(10,rint(-8,-1))).toPrecision(3);}
+    const[m,s]=pfx(v),exp=Math.round(Math.log10(m));
+    return{topic:'Unit prefixes',q:`Write <b>${plain(v)} ${u}</b> using the most natural unit prefix.`,ans:[{label:'Value',val:v,unit:u}],
+      sol:`<p>${s} stands for 10<sup>${exp}</sup>, so 1 ${s}${u} = ${plain(m)} ${u}.</p><p>Divide: ${plain(v)} ÷ ${plain(m)} = ${sig(v/m)}. That’s the same as moving the decimal point ${Math.abs(exp)} places to the ${exp>0?'left':'right'}.</p><p>Answer: <b>${eng(v,u)}</b></p>`};
+  },
+  ohm(){
+    const R=stdR(1,5),V=pick([1.5,3,3.3,5,9,12,15,24]),I=+(V/R).toPrecision(3),w=pick(['I','V','R']);
+    if(w==='I')return{topic:'Ohm’s law',q:`${V} V is applied across a ${eng(R,'Ω')} resistor. How much current flows?`,ans:[{label:'I',val:V/R,unit:'A'}],sol:`<p>I = V ÷ R = ${V} V ÷ ${eng(R,'Ω')} = <b>${eng(V/R,'A')}</b></p>`+kTip};
+    if(w==='V')return{topic:'Ohm’s law',q:`A current of ${eng(I,'A')} flows through a ${eng(R,'Ω')} resistor. What voltage is across it?`,ans:[{label:'V',val:I*R,unit:'V'}],sol:`<p>V = I × R = ${eng(I,'A')} × ${eng(R,'Ω')} = <b>${eng(I*R,'V')}</b></p>`+kTip};
+    return{topic:'Ohm’s law',q:`You measure ${V} V across an unmarked resistor and ${eng(I,'A')} through it. What is its resistance?`,ans:[{label:'R',val:V/I,unit:'Ω'}],sol:`<p>R = V ÷ I = ${V} V ÷ ${eng(I,'A')} = <b>${eng(V/I,'Ω')}</b></p>`+kTip};
+  },
+  power(){
+    if(Math.random()<.35){
+      const Pr=pick([0.125,0.25,0.5,1]),R=stdR(1,5),V=Math.sqrt(Pr*R),I=Math.sqrt(Pr/R),lab=RATINGS.find(x=>x[0]===Pr)[1];
+      return{topic:'Power ratings',q:`A ${eng(R,'Ω')} resistor is rated ${lab}. What is the highest voltage you can put across it, and the highest current through it, without exceeding the rating?`,ans:[{label:'V max',val:V,unit:'V'},{label:'I max',val:I,unit:'A'}],
+        sol:`<p>From P = V² ÷ R: V = √(P × R) = √(${Pr} × ${plain(R)}) = <b>${eng(V,'V')}</b></p><p>From P = I² × R: I = √(P ÷ R) = √(${Pr} ÷ ${plain(R)}) = <b>${eng(I,'A')}</b></p><p>Check: ${eng(V,'V')} × ${eng(I,'A')} = ${eng(V*I,'W')} ✓</p>`};
+    }
+    let V,R,P;do{V=pick([3.3,5,9,12,15,24]);R=stdR(1,3);P=V*V/R;}while(P<0.01||P>10);
+    const labels=['⅛ W','¼ W','½ W','1 W','2 W','3 W','5 W','10 W','25 W'],vals=[0.125,0.25,0.5,1,2,3,5,10,25];
+    const ci=vals.findIndex(x=>x>=2*P);
+    return{topic:'Power ratings',q:`A ${eng(R,'Ω')} resistor sits directly across a ${V} V supply. How much power does it dissipate, and what’s the smallest standard rating that follows the 2× rule?`,ans:[{label:'P',val:P,unit:'W'},{label:'Rating',type:'choice',options:labels,correct:ci}],
+      sol:`<p>You know V and R, so use P = V² ÷ R = ${V}² ÷ ${plain(R)} = ${sig(V*V)} ÷ ${plain(R)} = <b>${eng(P,'W')}</b></p><p>Twice that is ${eng(2*P,'W')}, so the smallest standard rating at or above it is <b>${labels[ci]}</b>.</p>`};
+  },
+  parallel(){
+    if(Math.random()<.35){
+      const R1=stdR(2,3),R2=stdR(2,3),Iin=pick([10,20,25,40,50,100])*1e-3,I1=Iin*R2/(R1+R2),I2=Iin-I1;
+      return{topic:'Current divider',q:`${eng(Iin,'A')} flows into a parallel pair: R<sub>1</sub> = ${eng(R1,'Ω')} and R<sub>2</sub> = ${eng(R2,'Ω')}. How much current goes through each?`,ans:[{label:'I₁',val:I1,unit:'A'},{label:'I₂',val:I2,unit:'A'}],
+        sol:`<p>Current divider, other resistor on top: I₁ = I<sub>in</sub> × R₂ ÷ (R₁ + R₂) = ${eng(Iin,'A')} × ${eng(R2,'Ω')} ÷ ${eng(R1+R2,'Ω')} = <b>${eng(I1,'A')}</b></p><p>I₂ = I<sub>in</sub> − I₁ = <b>${eng(I2,'A')}</b> (KCL)</p><p>Sanity check: the smaller resistor should carry more current.</p>`};
+    }
+    const n=pick([2,2,3]),e=rint(2,3),Rs=Array.from({length:n},()=>+(pick(E12)*Math.pow(10,e+rint(0,1))).toPrecision(3));
+    const V=pick([5,9,12,24]),Rt=1/Rs.reduce((s,r)=>s+1/r,0),It=V/Rt;
+    const names=Rs.map((r,i)=>`R<sub>${i+1}</sub> = ${eng(r,'Ω')}`).join(', ');
+    let w=n===2?`<p>Two resistors, so product over sum: (${plain(Rs[0])} × ${plain(Rs[1])}) ÷ (${plain(Rs[0])} + ${plain(Rs[1])}) = <b>${eng(Rt,'Ω')}</b></p>`
+      :`<p>1/R<sub>total</sub> = ${Rs.map(r=>'1/'+plain(r)).join(' + ')} = ${sig(1/Rt,4)} Ω⁻¹, so R<sub>total</sub> = <b>${eng(Rt,'Ω')}</b></p>`;
+    w+=`<p>Check: ${eng(Rt,'Ω')} is smaller than the smallest resistor ✓</p><p>Total current: ${V} V ÷ ${eng(Rt,'Ω')} = <b>${eng(It,'A')}</b>. You can also add the branch currents: ${Rs.map(r=>eng(V/r,'A')).join(' + ')}.</p>`;
+    return{topic:'Parallel',q:`These resistors are in parallel across ${V} V: ${names}. Find the equivalent resistance and the total current.`,ans:[{label:'R total',val:Rt,unit:'Ω'},{label:'I total',val:It,unit:'A'}],sol:w};
+  },
+  series(){
+    const n=pick([2,3]),Rs=Array.from({length:n},()=>stdR(2,4)),V=pick([5,9,12,24,48]),Rt=Rs.reduce((a,b)=>a+b,0),I=V/Rt,k=rint(0,n-1),Vk=I*Rs[k];
+    const names=Rs.map((r,i)=>`R<sub>${i+1}</sub> = ${eng(r,'Ω')}`).join(', ');
+    return{topic:'Series',q:`${names} are in series across ${V} V. Find the total resistance, the current, and the voltage across R<sub>${k+1}</sub>.`,
+      ans:[{label:'R total',val:Rt,unit:'Ω'},{label:'I',val:I,unit:'A'},{label:`V across R${k+1}`,val:Vk,unit:'V'}],
+      sol:`<p>Series resistances add: ${Rs.map(r=>eng(r,'Ω')).join(' + ')} = <b>${eng(Rt,'Ω')}</b></p><p>Same current everywhere: I = ${V} V ÷ ${eng(Rt,'Ω')} = <b>${eng(I,'A')}</b></p><p>V<sub>${k+1}</sub> = I × R<sub>${k+1}</sub> = ${eng(I,'A')} × ${eng(Rs[k],'Ω')} = <b>${eng(Vk,'V')}</b>. Or with the divider shortcut: ${V} V × ${eng(Rs[k],'Ω')} ÷ ${eng(Rt,'Ω')}.</p>`};
+  },
+  divider(){
+    if(Math.random()<.45){
+      const Vin=pick([9,12,15,24]),Vout=pick([1.8,2.5,3.3,5,6].filter(v=>v<Vin-1)),R2=pick([1000,2200,4700,10000,22000]),R1=R2*(Vin-Vout)/Vout;
+      return{topic:'Unloaded divider',q:`Design a divider that turns ${Vin} V into ${Vout} V for an input that draws practically no current. You choose R<sub>2</sub> = ${eng(R2,'Ω')}. What should R<sub>1</sub> be?`,ans:[{label:'R₁',val:R1,unit:'Ω'}],
+        sol:`<p>R₁ = R₂ × (V<sub>in</sub> − V<sub>out</sub>) ÷ V<sub>out</sub> = ${eng(R2,'Ω')} × (${Vin} − ${Vout}) ÷ ${Vout} = <b>${eng(R1,'Ω')}</b></p><p>Check with the divider equation: ${Vin} × ${plain(R2)} ÷ (${sig(R1,4)} + ${plain(R2)}) = ${sig(Vin*R2/(R1+R2))} V ✓. In practice you’d pick the nearest standard value.</p>`};
+    }
+    const Vin=pick([10,12,15,24]),VL=pick([3,3.3,5,6,9].filter(v=>v<Vin-1)),IL=pick([5,8,9.1,12,15,20,30,50])*1e-3;
+    const Ib=0.1*IL,R2=VL/Ib,I1=Ib+IL,R1=(Vin-VL)/I1,P1=(Vin-VL)*I1;
+    return{topic:'10 percent rule',q:`A ${Vin} V supply must power a ${VL} V device that draws ${eng(IL,'A')}. Use the 10 percent rule to find R<sub>2</sub> (bleeder), R<sub>1</sub>, and the power in R<sub>1</sub>.`,
+      ans:[{label:'R₂',val:R2,unit:'Ω'},{label:'R₁',val:R1,unit:'Ω'},{label:'P in R₁',val:P1,unit:'W'}],
+      sol:`<p>Bleeder current: 0.1 × ${eng(IL,'A')} = ${eng(Ib,'A')}</p><p>R₂ = ${VL} V ÷ ${eng(Ib,'A')} = <b>${eng(R2,'Ω')}</b></p><p>Current in R₁ (KCL): ${eng(Ib,'A')} + ${eng(IL,'A')} = ${eng(I1,'A')}</p><p>R₁ = (${Vin} − ${VL}) V ÷ ${eng(I1,'A')} = <b>${eng(R1,'Ω')}</b></p><p>P in R₁ = ${sig(Vin-VL)} V × ${eng(I1,'A')} = <b>${eng(P1,'W')}</b>, so a ${ratingFor(P1)} part by the 2× rule.</p>`};
+  },
+  network(){
+    const R1=stdR(2,3),R2=stdR(2,4),R3=stdR(2,4),V=pick([9,12,24,48]);
+    const Rp=R2*R3/(R2+R3),Rt=R1+Rp,I=V/Rt,Vp=I*Rp,I2=Vp/R2;
+    return{topic:'Network reduction',q:`R<sub>1</sub> = ${eng(R1,'Ω')} is in series with a parallel pair R<sub>2</sub> = ${eng(R2,'Ω')} || R<sub>3</sub> = ${eng(R3,'Ω')}, all across ${V} V. Find the equivalent resistance, the total current, the voltage across the parallel pair, and the current through R<sub>2</sub>.`,
+      ans:[{label:'R eq',val:Rt,unit:'Ω'},{label:'I total',val:I,unit:'A'},{label:'V across pair',val:Vp,unit:'V'},{label:'I through R₂',val:I2,unit:'A'}],
+      sol:`<p>Collapse the parallel pair first: R₂ || R₃ = (${plain(R2)} × ${plain(R3)}) ÷ (${plain(R2)} + ${plain(R3)}) = ${eng(Rp,'Ω')}</p><p>Add R₁ in series: ${eng(R1,'Ω')} + ${eng(Rp,'Ω')} = <b>${eng(Rt,'Ω')}</b></p><p>I<sub>total</sub> = ${V} V ÷ ${eng(Rt,'Ω')} = <b>${eng(I,'A')}</b></p><p>Unfold: V<sub>pair</sub> = ${eng(I,'A')} × ${eng(Rp,'Ω')} = <b>${eng(Vp,'V')}</b> (KVL check: V across R₁ is ${eng(V-Vp,'V')}, and the two add to ${V} V)</p><p>I₂ = ${eng(Vp,'V')} ÷ ${eng(R2,'Ω')} = <b>${eng(I2,'A')}</b></p>`};
+  }
+};
+
+(function(){
+  let topic='all',cur=null,checked=false,score=0,att=0;
+  const box=$('#prob');
+  document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>{topic=b.dataset.t;document.querySelectorAll('#chips button').forEach(x=>x.classList.toggle('on',x===b));next();});
+  function next(){
+    const keys=Object.keys(GEN),k=topic==='all'?pick(keys):topic;
+    cur=GEN[k]();checked=false;render();
+  }
+  function render(){
+    let h=`<div class="topic">${cur.topic}</div><p class="q">${cur.q}</p>`;
+    cur.ans.forEach((a,i)=>{
+      if(a.type==='choice'){h+=`<div class="ans"><span class="lbl">${a.label}</span><select id="a${i}"><option value="">Choose…</option>${a.options.map((o,j)=>`<option value="${j}">${o}</option>`).join('')}</select><span class="unit"></span><span class="mark" id="m${i}"></span></div>`;}
+      else{const[m,s]=pfx(a.val);a.mult=m;h+=`<div class="ans"><label class="lbl" for="a${i}">${a.label}</label><input type="text" id="a${i}" inputmode="decimal" autocomplete="off"><span class="unit">${s}${a.unit}</span><span class="mark" id="m${i}"></span></div>`;}
+    });
+    h+=`<div class="row"><button class="primary" id="pCheck">Check</button><button id="pSol">Show solution</button><button id="pNext">New problem</button></div><div class="sol" id="pSolBox">${cur.sol}</div>`;
+    box.innerHTML=h;
+    $('#pCheck').onclick=check;$('#pNext').onclick=next;
+    $('#pSol').onclick=()=>{const s=$('#pSolBox');s.classList.toggle('show');$('#pSol').textContent=s.classList.contains('show')?'Hide solution':'Show solution';};
+    box.querySelectorAll('input').forEach(inp=>inp.addEventListener('keydown',e=>{if(e.key==='Enter')check();}));
+  }
+  function check(){
+    let all=true;
+    cur.ans.forEach((a,i)=>{
+      const el=$('#a'+i),mk=$('#m'+i),t=el.value.trim();let ok=false;
+      if(a.type==='choice'){ok=el.value!==''&&+el.value===a.correct;}
+      else if(t){let v=/^[+-]?(\d+\.?\d*|\.\d+)$/.test(t.replace(/,/g,''))?parseFloat(t.replace(/,/g,''))*a.mult:parseEng(t);ok=isFinite(v)&&Math.abs(v-a.val)<=Math.abs(a.val)*0.02;}
+      mk.textContent=ok?'✓ correct':(t||a.type==='choice'&&el.value!==''?'✗ not quite':'✗ missing');mk.className='mark '+(ok?'ok':'no');
+      if(!ok)all=false;
+    });
+    if(!checked){att++;if(all)score++;checked=true;}
+    $('#sc').textContent=score;$('#sa').textContent=att;
+  }
+  next();
+})();
+
+/* ---------- concept checks ---------- */
+(function(){
+  const Q=[
+    ['You add a third resistor in parallel with two others. The total resistance…',['goes up','goes down','stays the same'],1,'Every parallel branch is another path for current, so the total always drops, no matter how big the new resistor is.'],
+    ['1 kΩ, 2.2 kΩ and 4.7 kΩ are in series. Which gets the hottest?',['1 kΩ','2.2 kΩ','4.7 kΩ'],2,'In series the current is the same in all of them, so P = I²R is largest for the largest R.'],
+    ['The same three resistors are now in parallel. Which gets the hottest?',['1 kΩ','2.2 kΩ','4.7 kΩ'],0,'In parallel the voltage is the same across all of them, so P = V²/R is largest for the smallest R.'],
+    ['In the current divider, the current through R₁ is I<sub>in</sub> times…',['R₁ ÷ (R₁ + R₂)','R₂ ÷ (R₁ + R₂)','R₁ × R₂'],1,'The other resistor goes on top. If R₂ were huge, almost everything would flow through R₁, and R₂ ÷ (R₁ + R₂) → 1 gives exactly that.'],
+    ['You connect a load across R₂ of a voltage divider. V<sub>out</sub>…',['rises','drops','stays the same'],1,'The load is in parallel with R₂, which makes the bottom of the divider smaller, so it gets a smaller share of the voltage.'],
+    ['A 100 Ω, ¼ W resistor goes directly across a 9 V battery. What happens?',['It’s fine','It runs warm but within spec','It overheats'],2,'P = V²/R = 81 ÷ 100 = 0.81 W, more than three times its ¼ W rating.'],
+    ['Two 10 kΩ resistors in parallel equal…',['20 kΩ','10 kΩ','5 kΩ'],2,'Two equal resistors in parallel give half: 10 × 10 ÷ (10 + 10) = 5 kΩ.'],
+    ['In a multiple voltage divider, the bleeder current is 10 percent of…',['the largest load','the total load current','the supply current'],1,'Page 61 stresses this: take 10 percent of all the load currents added together.'],
+    ['kΩ × mA gives you…',['volts','millivolts','kilovolts'],0,'The kilo (10³) and milli (10⁻³) cancel, so you’re left with plain volts.'],
+    ['1 kΩ in parallel with 1 MΩ is about…',['1 MΩ','500 kΩ','just under 1 kΩ'],2,'When one resistor is far bigger, the parallel total is just under the smaller one: here about 999 Ω.']
+  ];
+  const wrap=$('#mcs');
+  Q.forEach(([q,opts,c,why],qi)=>{
+    const d=document.createElement('div');d.className='mc';
+    d.innerHTML=`<p class="qq">${q}</p><div class="opts">${opts.map((o,i)=>`<button data-i="${i}">${o}</button>`).join('')}</div><p class="fb"></p>`;
+    d.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.i,fb=d.querySelector('.fb');
+      d.querySelectorAll('button').forEach(x=>x.classList.remove('right','wrong'));
+      b.classList.add(i===c?'right':'wrong');if(i!==c)d.querySelector(`button[data-i="${c}"]`).classList.add('right');
+      fb.innerHTML=(i===c?'<b style="color:var(--good)">Right.</b> ':'<b style="color:var(--bad)">Not quite.</b> ')+why;fb.classList.add('show');
+    });
+    wrap.appendChild(d);
+  });
+})();
+</script>
+</body>
+</html>
