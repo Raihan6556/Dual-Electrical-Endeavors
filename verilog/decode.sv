@@ -4,8 +4,8 @@ module decode #(
 
     parameter int XLEN = 32
 ) (
-    input  logic [31:0] instruction,
-    output logic [31:0] registers  [32],
+    input logic [31:0] instruction,
+    output logic signed [31:0] registers[32],
     output logic [31:0] pc
 );
   logic [6:0] opcode;
@@ -14,7 +14,7 @@ module decode #(
   logic [19:15] rs1;
   logic [24:20] rs2;
   logic [31:25] funct7;
-  logic [31:12] imm_u;
+  logic signed [31:12] imm_u;
   logic signed [31:20] imm_i;
 
   assign opcode = instruction[6:0];
@@ -102,7 +102,7 @@ module decode #(
           3'b010:
           registers[rd] = 32'(registers[rs1] < imm_i);  // slti (set less than immediate, 1/0)
           3'b011:
-          registers[rd] = 32'(registers[rs1] < unsigned'(imm_i)); // stliu (set less than immediate unsigned 1/0)
+          registers[rd] = 32'(unsigned'(registers[rs1]) < unsigned'(imm_i)); // stliu (set less than immediate unsigned 1/0)
           3'b100: registers[rd] = 32'(registers[rs1] ^ imm_i);  // xori (xor's rs1 with i immediate)
           3'b110: registers[rd] = 32'(registers[rs1] | imm_i);  // ori (or's rs1 with i immediate)
           3'b111: registers[rd] = 32'(registers[rs1] & imm_i);  // andi (ands rs1 with i immediate)
@@ -112,9 +112,10 @@ module decode #(
             logic [6:0] lower;
             lower = instruction[31:25];
             case (lower)
-              7'b0000000: registers[rd] = 32'(registers[rs1] >> rs2);  // srli
+              7'b0000000:
+              registers[rd] = 32'(registers[rs1] >> rs2);  // srli (shift right logically)
               7'b0100000:
-              registers[rd] = 32'(registers[rs1] >> rs2); // srai, FIXME: what is arithmetically shifting?
+              registers[rd] = 32'(registers[rs1] >>> rs2);  // srai (shift right arithmetically)
 
               default: ;
             endcase
@@ -135,6 +136,27 @@ module decode #(
               default: ;
             endcase
           end
+
+          3'b001: registers[rd] = registers[rs1] << registers[rs2];  // sll (shift left logical)
+          3'b010: registers[rd] = 32'(registers[rs1] < registers[rs2]);  // slt (set less than)
+          3'b010:
+          registers[rd] = 32'(unsigned'(registers[rs1]) < unsigned'(registers[rs2])); // sltu (set less than unsigned)
+          3'b100: registers[rd] = registers[rs1] ^ registers[rs2];  // xor (bitwise xor)
+
+          3'b101: begin
+            logic [6:0] lower;
+            lower = instruction[31:25];
+            case (lower)
+              7'b0000000:
+              registers[rd] = registers[rs1] >> registers[rs2];  // srl (shift right logically)
+              7'b0100000:
+              registers[rd] = registers[rs1] >>> registers[rs2]; // sra (shift right arithmetically)
+              default: ;
+            endcase
+          end
+
+          3'b110:  registers[rd] = registers[rs1] | registers[rs2];  // or
+          3'b111:  registers[rd] = registers[rs1] & registers[rs2];  // and
           default: ;
         endcase
       end
