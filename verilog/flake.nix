@@ -25,6 +25,9 @@
           buildInputs = with pkgs; [
             verilator
             verible
+            lz4
+            zlib
+            python3
           ];
 
           packages = [ ];

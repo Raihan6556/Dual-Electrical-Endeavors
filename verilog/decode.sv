@@ -139,7 +139,7 @@ module decode #(
 
           3'b001: registers[rd] = registers[rs1] << registers[rs2];  // sll (shift left logical)
           3'b010: registers[rd] = 32'(registers[rs1] < registers[rs2]);  // slt (set less than)
-          3'b010:
+          3'b011:
           registers[rd] = 32'(unsigned'(registers[rs1]) < unsigned'(registers[rs2])); // sltu (set less than unsigned)
           3'b100: registers[rd] = registers[rs1] ^ registers[rs2];  // xor (bitwise xor)
 
