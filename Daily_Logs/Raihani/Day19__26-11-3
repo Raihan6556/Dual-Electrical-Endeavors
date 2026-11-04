@@ -1,0 +1,14 @@
+Hi day 19, nice job today Yasin you got through a lot, remember i know my shit about 3dprinting lmk if u ever need anything
+
+So today we had a remote day... played some BSS, more than i shouldve tbh. I also made prototype 2
+of a 3d-printed replacement car part for my dad, i dont want him paying $130 for an OEM piece of plastic
+so i figure lets save some money, ill design the replacement part, proto 2 is better than proto 1, gonna
+make a 3rd proto, and then finalize and print in stronger filament
+
+I did some more work on KCL and KVL, KVL makes more sense now. KCL is node/junction based, and KVL
+is based on the circuit loop as a whole relative to ground reference, all the loads and components need
+to bring 24v down to 0v where ground is, is how I see it. Or rather they WILL.
+
+Also did some work on worksheet, but i needa sleep now so i will finish tmr.
+
+We're doing nice, lets keep going :)
